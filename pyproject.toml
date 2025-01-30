@@ -24,9 +24,14 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "async-caches==0.*",
+    "aiocache>=0.12.3",
     "starlette==0.*",
 ]
+
+[project.optional-dependencies]
+redis = ["redis>=5"]
+memcached = ["aiomcache>=0.5.2"]
+msgpack = ["msgpack>=0.5.5"]
 
 [project.urls]
 Homepage = "http://github.com/mattmess1221/asgi-caches"

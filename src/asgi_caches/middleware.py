@@ -1,13 +1,12 @@
 import typing
 
-from caches import Cache
+from aiocache import BaseCache as Cache
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .exceptions import (
-    CacheNotConnected,
     DuplicateCaching,
     RequestNotCachable,
     ResponseNotCachable,
@@ -64,9 +63,6 @@ class CacheResponder:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
-
-        if not self.cache.is_connected:
-            raise CacheNotConnected(self.cache)
 
         request = Request(scope)
 

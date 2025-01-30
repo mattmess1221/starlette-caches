@@ -3,7 +3,7 @@ import typing
 
 import pytest
 import pytest_asyncio
-from caches import Cache
+from aiocache import Cache, BaseCache
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 from starlette.types import Scope
@@ -21,19 +21,19 @@ pytestmark = pytest.mark.asyncio
 
 
 @pytest_asyncio.fixture(name="cache")
-async def fixture_cache() -> typing.AsyncIterator[Cache]:
-    async with Cache("locmem://null") as cache:
+async def fixture_cache() -> typing.AsyncIterator[BaseCache]:
+    async with Cache() as cache:
         yield cache
 
 
 @pytest_asyncio.fixture(name="short_cache")
-async def fixture_short_cache() -> typing.AsyncIterator[Cache]:
-    async with Cache("locmem://null", ttl=2 * 60) as cache:
+async def fixture_short_cache() -> typing.AsyncIterator[BaseCache]:
+    async with Cache(ttl=2 * 60) as cache:
         yield cache
 
 
 @pytest.mark.parametrize("method", ("GET", "HEAD"))
-async def test_get_from_emtpy_cache(cache: Cache, method: str) -> None:
+async def test_get_from_emtpy_cache(cache: BaseCache, method: str) -> None:
     scope: Scope = {
         "type": "http",
         "method": method,
@@ -48,7 +48,7 @@ async def test_get_from_emtpy_cache(cache: Cache, method: str) -> None:
 @pytest.mark.parametrize(
     "method", ("POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE")
 )
-async def test_non_cachable_methods(cache: Cache, method: str) -> None:
+async def test_non_cachable_methods(cache: BaseCache, method: str) -> None:
     scope: Scope = {
         "type": "http",
         "method": method,
@@ -60,7 +60,7 @@ async def test_non_cachable_methods(cache: Cache, method: str) -> None:
         await get_from_cache(request, cache=cache)
 
 
-async def test_store_in_cache(cache: Cache) -> None:
+async def test_store_in_cache(cache: BaseCache) -> None:
     scope: Scope = {
         "type": "http",
         "method": "GET",
@@ -76,14 +76,14 @@ async def test_store_in_cache(cache: Cache) -> None:
     key = await get_cache_key(request, method="GET", cache=cache)
     assert key is not None
 
-    cached_response = deserialize_response(await cache.get(key))
+    cached_response = deserialize_response(await cache.get(key) or {})
     assert ComparableStarletteResponse(cached_response) == response
 
 
 @pytest.mark.parametrize(
     "status_code", (201, 202, 204, 301, 307, 308, 400, 401, 403, 500, 502, 503)
 )
-async def test_non_cachable_status_codes(cache: Cache, status_code: int) -> None:
+async def test_non_cachable_status_codes(cache: BaseCache, status_code: int) -> None:
     scope: Scope = {
         "type": "http",
         "method": "GET",
@@ -96,7 +96,7 @@ async def test_non_cachable_status_codes(cache: Cache, status_code: int) -> None
         await store_in_cache(response, request=request, cache=cache)
 
 
-async def test_non_cachable_zero_ttl(cache: Cache) -> None:
+async def test_non_cachable_zero_ttl(cache: BaseCache) -> None:
     """
     We shouldn't bother caching if the cache TTL is zero.
     """
@@ -113,7 +113,7 @@ async def test_non_cachable_zero_ttl(cache: Cache) -> None:
         await store_in_cache(response, request=request, cache=cache)
 
 
-async def test_get_from_cache(cache: Cache) -> None:
+async def test_get_from_cache(cache: BaseCache) -> None:
     scope: Scope = {
         "type": "http",
         "method": "GET",
@@ -131,7 +131,7 @@ async def test_get_from_cache(cache: Cache) -> None:
     assert "Cache-Control" in cached_response.headers
 
 
-async def test_default_max_age(cache: Cache) -> None:
+async def test_default_max_age(cache: BaseCache) -> None:
     scope: Scope = {
         "type": "http",
         "method": "GET",
@@ -155,7 +155,7 @@ async def test_default_max_age(cache: Cache) -> None:
     assert cached_response.headers["Cache-Control"] == f"max-age={one_year}"
 
 
-async def test_cache_ttl_max_age(short_cache: Cache) -> None:
+async def test_cache_ttl_max_age(short_cache: BaseCache) -> None:
     scope: Scope = {
         "type": "http",
         "method": "GET",
@@ -175,10 +175,10 @@ async def test_cache_ttl_max_age(short_cache: Cache) -> None:
     ).replace(tzinfo=dt.timezone.utc)
     delta: dt.timedelta = expires - now
     assert delta.total_seconds() == pytest.approx(short_cache.ttl, rel=1e-2)
-    assert cached_response.headers["Cache-Control"] == f"max-age={short_cache.ttl}"
+    assert cached_response.headers["Cache-Control"] == f"max-age={int(short_cache.ttl or 0)}"
 
 
-async def test_get_from_cache_head(cache: Cache) -> None:
+async def test_get_from_cache_head(cache: BaseCache) -> None:
     scope: Scope = {
         "type": "http",
         "method": "HEAD",
@@ -194,7 +194,7 @@ async def test_get_from_cache_head(cache: Cache) -> None:
     assert ComparableStarletteResponse(cached_response) == response
 
 
-async def test_get_from_cache_different_path(cache: Cache) -> None:
+async def test_get_from_cache_different_path(cache: BaseCache) -> None:
     scope: Scope = {
         "type": "http",
         "method": "GET",
@@ -211,7 +211,7 @@ async def test_get_from_cache_different_path(cache: Cache) -> None:
     assert cached_response is None
 
 
-async def test_get_from_cache_vary(cache: Cache) -> None:
+async def test_get_from_cache_vary(cache: BaseCache) -> None:
     scope: Scope = {
         "type": "http",
         "method": "GET",

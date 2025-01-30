@@ -2,7 +2,7 @@ import typing
 
 import httpx
 import pytest
-from caches import Cache
+from aiocache import Cache
 from starlette.responses import PlainTextResponse
 
 from asgi_caches.middleware import CacheMiddleware
@@ -11,7 +11,7 @@ from tests.utils import override_log_level
 
 @pytest.mark.asyncio
 async def test_logs_debug(capsys: typing.Any) -> None:
-    cache = Cache("locmem://null", ttl=2 * 60)
+    cache = Cache(ttl=2 * 60)
     app = CacheMiddleware(PlainTextResponse("Hello, world!"), cache=cache)
     client = httpx.AsyncClient(
         transport=httpx.ASGITransport(app), base_url="http://testserver"
@@ -32,7 +32,7 @@ async def test_logs_debug(capsys: typing.Any) -> None:
 
 @pytest.mark.asyncio
 async def test_logs_trace(capsys: typing.Any) -> None:
-    cache = Cache("locmem://null", ttl=2 * 60)
+    cache = Cache(ttl=2 * 60)
     app = CacheMiddleware(PlainTextResponse("Hello, world!"), cache=cache)
     client = httpx.AsyncClient(
         transport=httpx.ASGITransport(app), base_url="http://testserver"
