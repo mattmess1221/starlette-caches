@@ -1,5 +1,7 @@
-#!/usr/bin/sh -e
+#!/usr/bin/sh
 
 set -x
 
-uv run --group test coverage run -p -m pytest
+uv run --group test coverage run -m pytest
+uv run --group test coverage report
+uv run --group test coverage xml
