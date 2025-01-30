@@ -34,7 +34,10 @@ memcached = ["aiomcache>=0.5.2"]
 msgpack = ["msgpack>=0.5.5"]
 
 [project.urls]
-Homepage = "http://github.com/mattmess1221/asgi-caches"
+Repository = "https://github.com/mattmess1221/asgi-caches"
+Documentation = "https://mattmess1221.github.io/asgi-caches"
+Issues = "https://github.com/mattmess1221/asgi-caches/issues"
+
 
 [dependency-groups]
 test = [
