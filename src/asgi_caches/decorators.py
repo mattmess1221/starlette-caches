@@ -1,7 +1,7 @@
 import functools
 import typing
 
-from caches import Cache
+from aiocache import BaseCache as Cache
 from starlette.types import ASGIApp
 
 from .middleware import CacheControlMiddleware, CacheMiddleware

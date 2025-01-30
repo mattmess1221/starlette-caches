@@ -1,6 +1,6 @@
 import httpx
 import pytest
-from caches import Cache
+from aiocache import Cache
 from starlette.applications import Starlette
 from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
@@ -15,7 +15,7 @@ from tests.utils import CacheSpy
 
 @pytest.mark.asyncio
 async def test_decorator_raw_asgi() -> None:
-    cache = Cache("locmem://null", ttl=2 * 60)
+    cache = Cache(ttl=2 * 60)
 
     @cached(cache)
     async def app(scope: Scope, receive: Receive, send: Send) -> None:
@@ -47,7 +47,7 @@ async def test_decorator_raw_asgi() -> None:
 
 @pytest.mark.asyncio
 async def test_decorator_starlette_endpoint() -> None:
-    cache = Cache("locmem://null", ttl=2 * 60)
+    cache = Cache(ttl=2 * 60)
 
     @cached(cache)
     class CachedHome(HTTPEndpoint):
@@ -103,7 +103,7 @@ async def test_decorator_starlette_endpoint() -> None:
 
 @pytest.mark.asyncio
 async def test_decorate_starlette_view() -> None:
-    cache = Cache("locmem://null", ttl=2 * 60)
+    cache = Cache(ttl=2 * 60)
 
     with pytest.raises(ValueError):
 

@@ -1,4 +1,4 @@
-from caches import Cache
+from aiocache import Cache
 
-cache = Cache("locmem://default", ttl=2 * 60)
-special_cache = Cache("locmem://special", ttl=60)
+cache = Cache(ttl=2 * 60)
+special_cache = Cache(ttl=60)

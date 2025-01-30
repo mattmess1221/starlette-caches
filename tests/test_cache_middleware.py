@@ -4,7 +4,7 @@ import typing
 
 import httpx
 import pytest
-from caches import Cache
+from aiocache import Cache
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
 from starlette.endpoints import HTTPEndpoint
@@ -13,14 +13,14 @@ from starlette.responses import PlainTextResponse, StreamingResponse
 from starlette.routing import Route
 from starlette.types import Receive, Scope, Send
 
-from asgi_caches.exceptions import CacheNotConnected, DuplicateCaching
+from asgi_caches.exceptions import DuplicateCaching
 from asgi_caches.middleware import CacheMiddleware
 from tests.utils import CacheSpy, ComparableHTTPXResponse, mock_receive, mock_send
 
 
 @pytest.mark.asyncio
 async def test_cache_response() -> None:
-    cache = Cache("locmem://null", ttl=2 * 60)
+    cache = Cache(ttl=2 * 60)
     spy = CacheSpy(PlainTextResponse("Hello, world!"))
     app = CacheMiddleware(spy, cache=cache)
     client = httpx.AsyncClient(
@@ -59,14 +59,14 @@ async def test_not_http() -> None:
     async def app(scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "lifespan"
 
-    cache = Cache("locmem://null")
+    cache = Cache()
     app = CacheMiddleware(app, cache=cache)
     await app({"type": "lifespan"}, mock_receive, mock_send)
 
 
 @pytest.mark.asyncio
 async def test_non_cachable_request() -> None:
-    cache = Cache("locmem://null")
+    cache = Cache()
     spy = CacheSpy(PlainTextResponse("Hello, world!"))
     app = CacheMiddleware(spy, cache=cache)
     client = httpx.AsyncClient(
@@ -93,7 +93,7 @@ async def test_use_cached_head_response_on_get() -> None:
     """
     Making a HEAD request should use the cached response for future GET requests.
     """
-    cache = Cache("locmem://null")
+    cache = Cache()
     spy = CacheSpy(PlainTextResponse("Hello, world!"))
     app = CacheMiddleware(spy, cache=cache)
     client = httpx.AsyncClient(
@@ -124,7 +124,7 @@ async def test_use_cached_head_response_on_get() -> None:
 @pytest.mark.asyncio
 async def test_not_200_ok(status_code: int) -> None:
     """Responses that don't have status code 200 should not be cached."""
-    cache = Cache("locmem://null")
+    cache = Cache()
     spy = CacheSpy(PlainTextResponse("Hello, world!", status_code=status_code))
     app = CacheMiddleware(spy, cache=cache)
     client = httpx.AsyncClient(
@@ -147,7 +147,7 @@ async def test_not_200_ok(status_code: int) -> None:
 @pytest.mark.asyncio
 async def test_streaming_response() -> None:
     """Streaming responses should not be cached."""
-    cache = Cache("locmem://null")
+    cache = Cache()
 
     async def body() -> typing.AsyncIterator[str]:
         yield "Hello, "
@@ -183,7 +183,7 @@ async def test_vary() -> None:
     Sending different values for request headers registered as varying should
     result in different cache entries.
     """
-    cache = Cache("locmem://null")
+    cache = Cache()
 
     async def gzippable_app(scope: Scope, receive: Receive, send: Send) -> None:
         headers = Headers(scope=scope)
@@ -241,7 +241,7 @@ async def test_cookies_in_response_and_cookieless_request() -> None:
     Responses that set cookies shouldn't be cached
     if the request doesn't have cookies.
     """
-    cache = Cache("locmem://null")
+    cache = Cache()
 
     async def app(scope: Scope, receive: Receive, send: Send) -> None:
         response = PlainTextResponse("Hello, world!")
@@ -267,26 +267,9 @@ async def test_cookies_in_response_and_cookieless_request() -> None:
 
 
 @pytest.mark.asyncio
-async def test_cache_not_connected() -> None:
-    cache = Cache("locmem://null", ttl=2 * 60)
-    app = CacheMiddleware(PlainTextResponse("Hello, world!"), cache=cache)
-    client = httpx.AsyncClient(
-        transport=httpx.ASGITransport(app), base_url="http://testserver"
-    )
-
-    async with client:
-        with pytest.raises(CacheNotConnected) as ctx:
-            await client.get("/")
-
-    exc = ctx.value
-    assert exc.cache is cache
-    assert str(cache.url) in str(exc)
-
-
-@pytest.mark.asyncio
 async def test_duplicate_caching() -> None:
-    cache = Cache("locmem://default")
-    special_cache = Cache("locmem://special")
+    cache = Cache()
+    special_cache = Cache()
 
     class DuplicateCache(HTTPEndpoint):
         pass

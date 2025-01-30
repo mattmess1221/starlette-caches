@@ -14,7 +14,7 @@ import time
 import typing
 from urllib.request import parse_http_list
 
-from caches import Cache
+from aiocache import BaseCache
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
@@ -31,7 +31,9 @@ CACHABLE_STATUS_CODES = frozenset((200, 304))
 ONE_YEAR = 60 * 60 * 24 * 365
 
 
-async def store_in_cache(response: Response, *, request: Request, cache: Cache) -> None:
+async def store_in_cache(
+    response: Response, *, request: Request, cache: BaseCache
+) -> None:
     """
     Given a response and a request, store the response in the cache for reuse.
 
@@ -68,7 +70,7 @@ async def store_in_cache(response: Response, *, request: Request, cache: Cache) 
         max_age = ONE_YEAR
         logger.trace(f"max_out_ttl value={max_age!r}")
     else:
-        max_age = cache.ttl
+        max_age = int(cache.ttl)
 
     logger.debug(f"store_in_cache max_age={max_age!r}")
 
@@ -86,7 +88,7 @@ async def store_in_cache(response: Response, *, request: Request, cache: Cache) 
 
 
 async def get_from_cache(
-    request: Request, *, cache: Cache
+    request: Request, *, cache: BaseCache
 ) -> typing.Optional[Response]:
     """
     Given a GET or HEAD request, retrieve a cached response based on the cache key
@@ -160,7 +162,9 @@ def deserialize_response(serialized_response: dict) -> Response:
     )
 
 
-async def learn_cache_key(request: Request, response: Response, *, cache: Cache) -> str:
+async def learn_cache_key(
+    request: Request, response: Response, *, cache: BaseCache
+) -> str:
     """
     Generate a cache key from the requested absolute URL.
 
@@ -192,7 +196,7 @@ async def learn_cache_key(request: Request, response: Response, *, cache: Cache)
 
 
 async def get_cache_key(
-    request: Request, method: str, cache: Cache
+    request: Request, method: str, cache: BaseCache
 ) -> typing.Optional[str]:
     """
     Given a request, return the cache key where a cached response should be looked up.
@@ -220,7 +224,7 @@ def generate_cache_key(
     request: Request,
     method: str,
     varying_headers: typing.List[str],
-    cache: Cache,
+    cache: BaseCache,
 ) -> str:
     """
     Return a cache key generated from the request full URL and varying
@@ -242,17 +246,17 @@ def generate_cache_key(
     absolute_url = str(request.url)
     url = hashlib.md5(absolute_url.encode("ascii"))
 
-    return cache.make_key(f"cache_page.{method}.{url.hexdigest()}.{ctx.hexdigest()}")
+    return cache.build_key(f"cache_page.{method}.{url.hexdigest()}.{ctx.hexdigest()}")
 
 
-def generate_varying_headers_cache_key(request: Request, cache: Cache) -> str:
+def generate_varying_headers_cache_key(request: Request, cache: BaseCache) -> str:
     """
     Return a cache key generated from the requested absolute URL, suitable for
     associating varying headers to a requested URL.
     """
     url = request.url.path
     url_hash = hashlib.md5(url.encode("ascii"))
-    return cache.make_key(f"varying_headers.{url_hash.hexdigest()}")
+    return cache.build_key(f"varying_headers.{url_hash.hexdigest()}")
 
 
 def get_cache_response_headers(
