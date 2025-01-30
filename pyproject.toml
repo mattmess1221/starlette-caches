@@ -52,6 +52,7 @@ dependencies = [
 [tool.hatch.envs.docs.scripts]
 build = "mkdocs build"
 serve = "mkdocs serve"
+deploy = "mkdocs gh-deploy"
 
 [tool.hatch.envs.lint]
 dependencies = [
