@@ -14,7 +14,9 @@ async def test_cache_control_decorator() -> None:
         response = PlainTextResponse("Hello, world!")
         await response(scope, receive, send)
 
-    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
+    client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="http://testserver"
+    )
 
     async with client:
         r = await client.get("/")
@@ -28,5 +30,4 @@ async def test_decorate_starlette_view() -> None:
     with pytest.raises(ValueError):
 
         @cache_control(stale_if_error=60)
-        async def home(request: Request) -> Response:
-            ...  # pragma: no cover
+        async def home(request: Request) -> Response: ...  # pragma: no cover

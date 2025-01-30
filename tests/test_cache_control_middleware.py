@@ -22,11 +22,19 @@ from tests.utils import mock_receive, mock_send
             "stale-if-error=60",
             id="override-value",
         ),
-        pytest.param("max-stale=60", {"max_stale": False}, None, id="remove-value",),
+        pytest.param(
+            "max-stale=60",
+            {"max_stale": False},
+            None,
+            id="remove-value",
+        ),
         pytest.param(None, {"must_revalidate": True}, "must-revalidate", id="add-true"),
         pytest.param(None, {"must_revalidate": False}, None, id="add-false"),
         pytest.param(
-            "must-revalidate", {"must_revalidate": False}, None, id="remove-false",
+            "must-revalidate",
+            {"must_revalidate": False},
+            None,
+            id="remove-false",
         ),
         pytest.param(
             "must-revalidate, max-stale=60, only-if-cached",
@@ -50,10 +58,13 @@ async def test_cache_control_middleware(
     result: typing.Optional[typing.Union[str, typing.Type[BaseException]]],
 ) -> None:
     app: ASGIApp = PlainTextResponse(
-        "Hello, world!", headers={"Cache-Control": initial} if initial else {},
+        "Hello, world!",
+        headers={"Cache-Control": initial} if initial else {},
     )
     app = CacheControlMiddleware(app, **kwargs)
-    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
+    client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="http://testserver"
+    )
 
     async with client:
         if result is NotImplementedError:

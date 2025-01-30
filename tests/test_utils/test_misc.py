@@ -9,27 +9,28 @@ from asgi_caches.utils.misc import is_asgi3
 
 
 class CallableClass:
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        ...  # pragma: no cover
+    async def __call__(
+        self, scope: Scope, receive: Receive, send: Send
+    ) -> None: ...  # pragma: no cover
 
 
 callable_instance = CallableClass()
 
 
 class AwaitableClass:
-    def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        ...  # pragma: no cover
+    def __init__(
+        self, scope: Scope, receive: Receive, send: Send
+    ) -> None: ...  # pragma: no cover
 
-    def __await__(self) -> None:
-        ...  # pragma: no cover
-
-
-async def async_function(scope: Scope, receive: Receive, send: Send) -> None:
-    ...  # pragma: no cover
+    def __await__(self) -> None: ...  # pragma: no cover
 
 
-async def view(request: Request) -> Response:
-    ...  # pragma: no cover
+async def async_function(
+    scope: Scope, receive: Receive, send: Send
+) -> None: ...  # pragma: no cover
+
+
+async def view(request: Request) -> Response: ...  # pragma: no cover
 
 
 @pytest.mark.parametrize(

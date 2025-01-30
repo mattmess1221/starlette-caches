@@ -13,7 +13,9 @@ from tests.utils import override_log_level
 async def test_logs_debug(capsys: typing.Any) -> None:
     cache = Cache("locmem://null", ttl=2 * 60)
     app = CacheMiddleware(PlainTextResponse("Hello, world!"), cache=cache)
-    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
+    client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="http://testserver"
+    )
 
     async with cache, client:
         with override_log_level("debug"):
@@ -32,7 +34,9 @@ async def test_logs_debug(capsys: typing.Any) -> None:
 async def test_logs_trace(capsys: typing.Any) -> None:
     cache = Cache("locmem://null", ttl=2 * 60)
     app = CacheMiddleware(PlainTextResponse("Hello, world!"), cache=cache)
-    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
+    client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="http://testserver"
+    )
 
     async with cache, client:
         with override_log_level("trace"):

@@ -146,7 +146,9 @@ async def test_default_max_age(cache: Cache) -> None:
     assert cached_response is not None
     now = dt.datetime.now(tz=dt.timezone.utc)
     http_date_fmt = "%a, %d %b %Y %H:%M:%S GMT"
-    expires = dt.datetime.strptime(cached_response.headers["Expires"], http_date_fmt).replace(tzinfo=dt.timezone.utc)
+    expires = dt.datetime.strptime(
+        cached_response.headers["Expires"], http_date_fmt
+    ).replace(tzinfo=dt.timezone.utc)
     delta: dt.timedelta = expires - now
     one_year = int(dt.timedelta(days=365).total_seconds())
     assert delta.total_seconds() == pytest.approx(one_year)
@@ -168,7 +170,9 @@ async def test_cache_ttl_max_age(short_cache: Cache) -> None:
     assert cached_response is not None
     now = dt.datetime.now(tz=dt.timezone.utc)
     http_date_fmt = "%a, %d %b %Y %H:%M:%S GMT"
-    expires = dt.datetime.strptime(cached_response.headers["Expires"], http_date_fmt).replace(tzinfo=dt.timezone.utc)
+    expires = dt.datetime.strptime(
+        cached_response.headers["Expires"], http_date_fmt
+    ).replace(tzinfo=dt.timezone.utc)
     delta: dt.timedelta = expires - now
     assert delta.total_seconds() == pytest.approx(short_cache.ttl, rel=1e-2)
     assert cached_response.headers["Cache-Control"] == f"max-age={short_cache.ttl}"

@@ -63,18 +63,19 @@ dependencies = [
     "flake8-comprehensions",
     "isort",
     "mypy",
+    "seed-isort-config",
 ]
 [tool.hatch.envs.lint.scripts]
 check = [
-    "black --eheck --diff --target-version=py36 src/asgi_caches tests",
+    "black --check --diff --target-version=py39 src/asgi_caches tests",
+    "isort --check --diff --project=asgi_caches src/asgi_caches tests",
     "flake8 src/asgi_caches tests",
-    "mypy src/asgi_caches tests",
-    "isort --check --diff --project=asgi_caches --recursive src/asgi_caches tests",
+    "mypy src/asgi_caches",
 ]
 lint = [
     "autoflake --in-place --recursive src/asgi_caches tests",
     "seed-isort-config --application-directories=asgi_caches",
-    "isort --project=asgi_caches --recursive --apply src/asgi_caches tests",
+    "isort --project=asgi_caches src/asgi_caches tests",
     "black --target-version=py36 src/asgi_caches tests"
 ]
 

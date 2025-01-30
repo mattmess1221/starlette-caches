@@ -19,8 +19,9 @@ TRACE_LOG_LEVEL = 5
 
 class Logger(logging.Logger):
     # Stub for type checkers.
-    def trace(self, message: str, *args: typing.Any, **kwargs: typing.Any) -> None:
-        ...  # pragma: no cover
+    def trace(
+        self, message: str, *args: typing.Any, **kwargs: typing.Any
+    ) -> None: ...  # pragma: no cover
 
 
 class LoggerFactory:

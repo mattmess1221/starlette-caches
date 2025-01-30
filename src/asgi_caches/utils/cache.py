@@ -209,12 +209,18 @@ async def get_cache_key(
     logger.trace(f"varying_headers found=True headers={varying_headers!r}")
 
     return generate_cache_key(
-        request, method=method, varying_headers=varying_headers, cache=cache,
+        request,
+        method=method,
+        varying_headers=varying_headers,
+        cache=cache,
     )
 
 
 def generate_cache_key(
-    request: Request, method: str, varying_headers: typing.List[str], cache: Cache,
+    request: Request,
+    method: str,
+    varying_headers: typing.List[str],
+    cache: Cache,
 ) -> str:
     """
     Return a cache key generated from the request full URL and varying

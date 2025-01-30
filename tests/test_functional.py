@@ -30,7 +30,9 @@ def fixture_spies(request: typing.Any) -> ASGIApp:
 
 @pytest_asyncio.fixture(name="client")
 async def fixture_client(app: ASGIApp) -> typing.AsyncIterator[httpx.AsyncClient]:
-    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
+    client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="http://testserver"
+    )
     async with cache, special_cache, client:
         yield client
 
