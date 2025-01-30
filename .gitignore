@@ -1,5 +1,5 @@
 # Tooling.
-.coverage
+.coverage*
 coverage.xml
 .tox/
 venv*/
