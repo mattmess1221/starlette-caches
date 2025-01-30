@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "asgi-caches"
+dynamic = ["version"]
+description = "Server-side HTTP caching for ASGI applications, inspired by Django's cache framework"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "Florimond Manca", email = "florimond.manca@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "async-caches==0.*",
+    "starlette==0.*",
+]
+
+[project.urls]
+Homepage = "http://github.com/florimondmanca/asgi-caches"
+
+[tool.hatch.version]
+path = "src/asgi_caches/__version__.py"
+
+[tool.hatch.envs.hatch-test]
+extra-dependencies = [
+    "pytest-asyncio",
+    "pytest-cov",
+    "httpx",
+]
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.13", "3.12", "3.11", "3.10", "3.9"]
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "mkdocs",
+    "mkdocs-material",
+]
+
+[tool.hatch.envs.docs.scripts]
+build = "mkdocs build"
+serve = "mkdocs serve"
+
+[tool.hatch.envs.lint]
+dependencies = [
+    "autoflake",
+    "black",
+    "flake8",
+    "flake8-bugbear",
+    "flake8-comprehensions",
+    "isort",
+    "mypy",
+]
+[tool.hatch.envs.lint.scripts]
+check = [
+    "black --eheck --diff --target-version=py36 src/asgi_caches tests",
+    "flake8 src/asgi_caches tests",
+    "mypy src/asgi_caches tests",
+    "isort --check --diff --project=asgi_caches --recursive src/asgi_caches tests",
+]
+lint = [
+    "autoflake --in-place --recursive src/asgi_caches tests",
+    "seed-isort-config --application-directories=asgi_caches",
+    "isort --project=asgi_caches --recursive --apply src/asgi_caches tests",
+    "black --target-version=py36 src/asgi_caches tests"
+]
