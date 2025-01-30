@@ -4,14 +4,14 @@ site_description: Server-side HTTP caching for ASGI applications, inspired by Dj
 theme:
   name: material
 
-repo_name: florimondmanca/asgi-caches
-repo_url: https://github.com/florimondmanca/asgi-caches
+repo_name: mattmess1221/asgi-caches
+repo_url: https://github.com/mattmess1221/asgi-caches
 edit_uri: ""
 
 nav:
   - Introduction: "index.md"
   - User Guide: "usage.md"
-  - Changelog: "https://github.com/florimondmanca/asgi-caches/tree/master/CHANGELOG.md"
+  - Changelog: "https://github.com/mattmess1221/asgi-caches/tree/master/CHANGELOG.md"
 
 markdown_extensions:
   - admonition

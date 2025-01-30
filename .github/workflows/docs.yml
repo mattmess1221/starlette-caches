@@ -29,4 +29,4 @@ jobs:
             mkdocs-material-
       - run: pipx install hatch
       - name: Deploy docs to GitHub Pages
-        run: hatch run docs:deploy --force
+        run: hatch run docs:deploy
