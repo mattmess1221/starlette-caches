@@ -20,6 +20,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - run: pipx install hatch
+      - run: pipx install uv
       - name: Deploy docs to GitHub Pages
-        run: hatch run docs:deploy
+        run: uv run --group docs mkdocs gh-deploy --force
