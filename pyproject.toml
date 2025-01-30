@@ -86,3 +86,8 @@ lint = [
 fail_under = 100
 show_missing = true
 skip_empty = true
+
+[tool.mypy]
+disallow_untyped_defs = true
+ignore_missing_imports = true
+allow_empty_bodies = true
