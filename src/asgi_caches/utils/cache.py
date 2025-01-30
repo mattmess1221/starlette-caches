@@ -31,7 +31,9 @@ CACHABLE_STATUS_CODES = frozenset((200, 304))
 ONE_YEAR = 60 * 60 * 24 * 365
 
 
-async def store_in_cache(response: Response, *, request: Request, cache: BaseCache) -> None:
+async def store_in_cache(
+    response: Response, *, request: Request, cache: BaseCache
+) -> None:
     """
     Given a response and a request, store the response in the cache for reuse.
 
@@ -160,7 +162,9 @@ def deserialize_response(serialized_response: dict) -> Response:
     )
 
 
-async def learn_cache_key(request: Request, response: Response, *, cache: BaseCache) -> str:
+async def learn_cache_key(
+    request: Request, response: Response, *, cache: BaseCache
+) -> str:
     """
     Generate a cache key from the requested absolute URL.
 

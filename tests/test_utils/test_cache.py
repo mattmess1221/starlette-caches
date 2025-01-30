@@ -3,7 +3,7 @@ import typing
 
 import pytest
 import pytest_asyncio
-from aiocache import Cache, BaseCache
+from aiocache import BaseCache, Cache
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 from starlette.types import Scope
@@ -175,7 +175,8 @@ async def test_cache_ttl_max_age(short_cache: BaseCache) -> None:
     ).replace(tzinfo=dt.timezone.utc)
     delta: dt.timedelta = expires - now
     assert delta.total_seconds() == pytest.approx(short_cache.ttl, rel=1e-2)
-    assert cached_response.headers["Cache-Control"] == f"max-age={int(short_cache.ttl or 0)}"
+    ttl = int(short_cache.ttl or 0)
+    assert cached_response.headers["Cache-Control"] == f"max-age={ttl}"
 
 
 async def test_get_from_cache_head(cache: BaseCache) -> None:
