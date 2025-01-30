@@ -14,7 +14,7 @@ async def test_cache_control_decorator() -> None:
         response = PlainTextResponse("Hello, world!")
         await response(scope, receive, send)
 
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with client:
         r = await client.get("/")

@@ -53,7 +53,7 @@ async def test_cache_control_middleware(
         "Hello, world!", headers={"Cache-Control": initial} if initial else {},
     )
     app = CacheControlMiddleware(app, **kwargs)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with client:
         if result is NotImplementedError:

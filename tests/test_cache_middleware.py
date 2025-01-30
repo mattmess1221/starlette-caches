@@ -23,7 +23,7 @@ async def test_cache_response() -> None:
     cache = Cache("locmem://null", ttl=2 * 60)
     spy = CacheSpy(PlainTextResponse("Hello, world!"))
     app = CacheMiddleware(spy, cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         assert spy.misses == 0
@@ -35,8 +35,8 @@ async def test_cache_response() -> None:
 
         assert "Expires" in r.headers
         expires_fmt = "%a, %d %b %Y %H:%M:%S GMT"
-        expires = dt.datetime.strptime(r.headers["Expires"], expires_fmt)
-        delta: dt.timedelta = expires - dt.datetime.utcnow()
+        expires = dt.datetime.strptime(r.headers["Expires"], expires_fmt).replace(tzinfo=dt.timezone.utc)
+        delta: dt.timedelta = expires - dt.datetime.now(tz=dt.timezone.utc)
         assert delta.total_seconds() == pytest.approx(120, rel=1e-2)
         assert "Cache-Control" in r.headers
         assert r.headers["Cache-Control"] == "max-age=120"
@@ -65,7 +65,7 @@ async def test_non_cachable_request() -> None:
     cache = Cache("locmem://null")
     spy = CacheSpy(PlainTextResponse("Hello, world!"))
     app = CacheMiddleware(spy, cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         assert spy.misses == 0
@@ -90,7 +90,7 @@ async def test_use_cached_head_response_on_get() -> None:
     cache = Cache("locmem://null")
     spy = CacheSpy(PlainTextResponse("Hello, world!"))
     app = CacheMiddleware(spy, cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         assert spy.misses == 0
@@ -119,7 +119,7 @@ async def test_not_200_ok(status_code: int) -> None:
     cache = Cache("locmem://null")
     spy = CacheSpy(PlainTextResponse("Hello, world!", status_code=status_code))
     app = CacheMiddleware(spy, cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         r = await client.get("/")
@@ -149,7 +149,7 @@ async def test_streaming_response() -> None:
 
     spy = CacheSpy(app)
     app = CacheMiddleware(spy, cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         assert spy.misses == 0
@@ -190,7 +190,7 @@ async def test_vary() -> None:
 
     spy = CacheSpy(gzippable_app)
     app = CacheMiddleware(spy, cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         r = await client.get("/", headers={"accept-encoding": "gzip"})
@@ -236,7 +236,7 @@ async def test_cookies_in_response_and_cookieless_request() -> None:
 
     spy = CacheSpy(app)
     app = CacheMiddleware(spy, cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         r = await client.get("/")
@@ -254,7 +254,7 @@ async def test_cookies_in_response_and_cookieless_request() -> None:
 async def test_cache_not_connected() -> None:
     cache = Cache("locmem://null", ttl=2 * 60)
     app = CacheMiddleware(PlainTextResponse("Hello, world!"), cache=cache)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with client:
         with pytest.raises(CacheNotConnected) as ctx:
@@ -282,7 +282,7 @@ async def test_duplicate_caching() -> None:
         middleware=[Middleware(CacheMiddleware, cache=cache)],
     )
 
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, special_cache, client:
         with pytest.raises(DuplicateCaching):

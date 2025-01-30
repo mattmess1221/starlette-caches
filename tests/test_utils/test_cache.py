@@ -2,6 +2,7 @@ import datetime as dt
 import typing
 
 import pytest
+import pytest_asyncio
 from caches import Cache
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
@@ -19,13 +20,13 @@ from tests.utils import ComparableStarletteResponse
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.fixture(name="cache")
+@pytest_asyncio.fixture(name="cache")
 async def fixture_cache() -> typing.AsyncIterator[Cache]:
     async with Cache("locmem://null") as cache:
         yield cache
 
 
-@pytest.fixture(name="short_cache")
+@pytest_asyncio.fixture(name="short_cache")
 async def fixture_short_cache() -> typing.AsyncIterator[Cache]:
     async with Cache("locmem://null", ttl=2 * 60) as cache:
         yield cache
@@ -143,9 +144,9 @@ async def test_default_max_age(cache: Cache) -> None:
 
     cached_response = await get_from_cache(request, cache=cache)
     assert cached_response is not None
-    now = dt.datetime.utcnow()
+    now = dt.datetime.now(tz=dt.timezone.utc)
     http_date_fmt = "%a, %d %b %Y %H:%M:%S GMT"
-    expires = dt.datetime.strptime(cached_response.headers["Expires"], http_date_fmt)
+    expires = dt.datetime.strptime(cached_response.headers["Expires"], http_date_fmt).replace(tzinfo=dt.timezone.utc)
     delta: dt.timedelta = expires - now
     one_year = int(dt.timedelta(days=365).total_seconds())
     assert delta.total_seconds() == pytest.approx(one_year)
@@ -165,9 +166,9 @@ async def test_cache_ttl_max_age(short_cache: Cache) -> None:
 
     cached_response = await get_from_cache(request, cache=short_cache)
     assert cached_response is not None
-    now = dt.datetime.utcnow()
+    now = dt.datetime.now(tz=dt.timezone.utc)
     http_date_fmt = "%a, %d %b %Y %H:%M:%S GMT"
-    expires = dt.datetime.strptime(cached_response.headers["Expires"], http_date_fmt)
+    expires = dt.datetime.strptime(cached_response.headers["Expires"], http_date_fmt).replace(tzinfo=dt.timezone.utc)
     delta: dt.timedelta = expires - now
     assert delta.total_seconds() == pytest.approx(short_cache.ttl, rel=1e-2)
     assert cached_response.headers["Cache-Control"] == f"max-age={short_cache.ttl}"

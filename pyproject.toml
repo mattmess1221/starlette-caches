@@ -37,7 +37,6 @@ path = "src/asgi_caches/__version__.py"
 [tool.hatch.envs.hatch-test]
 extra-dependencies = [
     "pytest-asyncio",
-    "pytest-cov",
     "httpx",
 ]
 
@@ -77,3 +76,11 @@ lint = [
     "isort --project=asgi_caches --recursive --apply src/asgi_caches tests",
     "black --target-version=py36 src/asgi_caches tests"
 ]
+
+[tool.coverage.run]
+# branch = true
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_empty = true

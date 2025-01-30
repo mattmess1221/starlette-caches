@@ -4,6 +4,7 @@ import typing
 
 import httpx
 import pytest
+import pytest_asyncio
 from starlette.types import ASGIApp
 
 from tests.examples.resources import cache, special_cache
@@ -15,21 +16,21 @@ EXAMPLES = [
 ]
 
 
-@pytest.fixture(name="app", params=EXAMPLES)
+@pytest_asyncio.fixture(name="app", params=EXAMPLES)
 def fixture_app(request: typing.Any) -> ASGIApp:
     module: typing.Any = importlib.import_module(request.param)
     return module.app
 
 
-@pytest.fixture(name="spies", params=EXAMPLES)
+@pytest_asyncio.fixture(name="spies", params=EXAMPLES)
 def fixture_spies(request: typing.Any) -> ASGIApp:
     module: typing.Any = importlib.import_module(request.param)
     return module.spies
 
 
-@pytest.fixture(name="client")
+@pytest_asyncio.fixture(name="client")
 async def fixture_client(app: ASGIApp) -> typing.AsyncIterator[httpx.AsyncClient]:
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
     async with cache, special_cache, client:
         yield client
 

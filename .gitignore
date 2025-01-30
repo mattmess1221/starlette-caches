@@ -1,5 +1,6 @@
 # Tooling.
 .coverage
+coverage.xml
 .nox/
 venv*/
 .python-version

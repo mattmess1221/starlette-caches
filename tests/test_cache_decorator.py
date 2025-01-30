@@ -23,7 +23,7 @@ async def test_decorator_raw_asgi() -> None:
         await response(scope, receive, send)
 
     spy = app.app = CacheSpy(app.app)
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         assert spy.misses == 0
@@ -61,7 +61,7 @@ async def test_decorator_starlette_endpoint() -> None:
     users_spy = CacheSpy(UncachedUsers)
 
     app = Starlette(routes=[Route("/", CachedHome), Route("/users", users_spy)])
-    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+    client = httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://testserver")
 
     async with cache, client:
         assert spy.misses == 0
