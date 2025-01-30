@@ -1,6 +1,6 @@
 """
 Utilities that add HTTP-specific functionality to the
-otherwise protocol-agnostic features in async-caches.
+otherwise protocol-agnostic features in aiocache.
 
 The `store_in_cache()` and `get_from_cache()` helpers are the main pieces of API
 defined in this module:
@@ -140,8 +140,8 @@ async def get_from_cache(
 def serialize_response(response: Response) -> dict:
     """Convert a response to JSON format.
 
-    (This is required as `async-caches` dumps values to JSON before storing them
-    in the cache system.)
+    (This is required as `aiocache` dumps values to JSON before storing them
+    in the cache system by default.)
     """
     return {
         "content": bytes_to_json_string(response.body),

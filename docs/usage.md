@@ -2,17 +2,18 @@
 
 ## Getting started
 
-`asgi-caches` uses `async-caches` to interact with cache backends. This means you'll first need to [setup a `Cache`](https://rafalp.github.io/async-caches/backends/) and make sure it is [connected](https://rafalp.github.io/async-caches/backends/#connection) for when your application responds to requests.
+`asgi-caches` uses `aiocache` to interact with cache backends. This means you'll first need to [setup a `Cache`](https://aiocache.aio-libs.org/en/latest/).
 
 Here's an example setup with [Starlette](https://www.starlete.io) and an in-memory cache with a default time to live of 2 minutes:
 
 ```python
-from caches import Cache
+from aiocache import Cache
+from asgi_caches.middleware import CacheMiddleware
 from starlette.applications import Starlette
 
-cache = Cache("locmem://null", ttl=2 * 60)
+cache = Cache(ttl=2 * 60) # 2 minutes
 
-app = Starlette(on_startup=[cache.connect], on_shutdown=[cache.disconnect])
+app = Starlette(middleware=[Middleware(CacheMiddleware, cache=cache)])
 ```
 
 ## Enabling caching
@@ -83,7 +84,8 @@ class Constant(HTTPEndpoint):
     ...
 ```
 
-For more information on using TTL, see [Default time to live](https://rafalp.github.io/async-caches/backends/#default-time-to-live) in the `async-caches` documentation.
+!!! note
+    AIOCache does not define a default TTL. If you don't set one, the cache will keep the response indefinitely.
 
 ### Cache-Control
 

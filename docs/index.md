@@ -1,6 +1,6 @@
 # Introduction
 
-`asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`async-caches`](https://rafalp.github.io/async-caches/), and inspired by Django's cache framework.
+`asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`aiocache`](https://aiocache.aio-libs.org/en/latest/), and inspired by Django's cache framework.
 
 !!! warning
     This project is in an "alpha" status. Several features still need to be implemented, and you should expect breaking API changes across minor versions.
@@ -10,7 +10,7 @@
 - Compatibility with any ASGI application (e.g. Starlette, FastAPI, Quart, etc.).
 - Support for application-wide or per-endpoint caching.
 - Ability to fine-tune the cache behavior (TTL, cache control) down to the endpoint level.
-- Clean and explicit API enabled by a loose coupling with `async-caches`.
+- Clean and explicit API enabled by a loose coupling with `aiocache`.
 - Fully type annotated.
 - 100% test coverage.
 
@@ -23,9 +23,10 @@ pip install "asgi-caches==0.*"
 ## Quickstart
 
 ```python
+from aiocache import Cache
 from asgi_caches.middleware import CacheMiddleware
 
-cache = Cache("locmem://null")
+cache = Cache()
 
 async def app(scope, receive, send):
     assert scope["type"] == "http"
@@ -38,11 +39,11 @@ app = CacheMiddleware(app, cache=cache)
 
 This example:
 
-- Sets up an in-memory cache (see the [async-caches docs](https://rafalp.github.io/async-caches/) for specifics).
+- Sets up an in-memory cache (see the [aiocache docs](https://aiocache.aio-libs.org/en/latest/) for specifics).
 - Sets up an application (in this case, a raw-ASGI 'Hello, world!' app).
 - Applies caching on the entire application.
 
-To learn more, head to the [User Guide](/usage/).
+To learn more, head to the [User Guide](usage.md).
 
 ## Credits
 
