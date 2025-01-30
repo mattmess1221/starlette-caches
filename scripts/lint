@@ -1,4 +1,4 @@
-#!/usr/bin/sh -e
+#!/usr/bin/sh
 
 set -x
 
