@@ -1,7 +1,7 @@
 # Tooling.
 .coverage
 coverage.xml
-.nox/
+.tox/
 venv*/
 .python-version
 

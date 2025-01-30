@@ -1,0 +1,8 @@
+#!/usr/bin/sh -e
+
+set -x
+
+uv run --group lint autoflake --in-place --recursive src/asgi_caches tests
+uv run --group lint seed-isort-config --application-directories=asgi_caches
+uv run --group lint isort --project=asgi_caches src/asgi_caches tests
+uv run --group lint black --target-version=py36 src/asgi_caches tests

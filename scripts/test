@@ -1,0 +1,5 @@
+#!/usr/bin/sh -e
+
+set -x
+
+uv run --group test coverage run -p -m pytest

@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 authors = [
-    { name = "Florimond Manca", email = "florimond.manca@gmail.com" },
+    { name = "Matthew Messinger", email = "mattmess1221@gmail.com" },
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -29,55 +29,40 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "http://github.com/florimondmanca/asgi-caches"
+Homepage = "http://github.com/mattmess1221/asgi-caches"
 
-[tool.hatch.version]
-path = "src/asgi_caches/__version__.py"
-
-[tool.hatch.envs.hatch-test]
-extra-dependencies = [
+[dependency-groups]
+test = [
+    "coverage",
+    "pytest",
     "pytest-asyncio",
+    "pytest-rerunfailures",
     "httpx",
 ]
 
-[[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.13", "3.12", "3.11", "3.10", "3.9"]
-
-[tool.hatch.envs.docs]
-dependencies = [
+docs = [
     "mkdocs",
     "mkdocs-material",
 ]
 
-[tool.hatch.envs.docs.scripts]
-build = "mkdocs build"
-serve = "mkdocs serve"
-deploy = "mkdocs gh-deploy --force"
-
-[tool.hatch.envs.lint]
-dependencies = [
+lint = [
     "autoflake",
     "black",
     "flake8",
     "flake8-bugbear",
     "flake8-comprehensions",
     "isort",
-    "mypy",
     "seed-isort-config",
 ]
-[tool.hatch.envs.lint.scripts]
-check = [
-    "black --check --diff --target-version=py39 src/asgi_caches tests",
-    "isort --check --diff --project=asgi_caches src/asgi_caches tests",
-    "flake8 src/asgi_caches tests",
-    "mypy src/asgi_caches",
+types = [
+    "mypy>=1.14.1",
 ]
-lint = [
-    "autoflake --in-place --recursive src/asgi_caches tests",
-    "seed-isort-config --application-directories=asgi_caches",
-    "isort --project=asgi_caches src/asgi_caches tests",
-    "black --target-version=py36 src/asgi_caches tests"
-]
+
+[tool.uv]
+default-groups = ["test", "lint"]
+
+[tool.hatch.version]
+path = "src/asgi_caches/__version__.py"
 
 [tool.coverage.run]
 # branch = true
