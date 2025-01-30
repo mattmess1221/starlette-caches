@@ -4,9 +4,9 @@
 [![Coverage](https://codecov.io/gh/florimondmanca/asgi-caches/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-caches)
 [![Package version](https://badge.fury.io/py/asgi-caches.svg)](https://pypi.org/project/asgi-caches)
 
-`asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`async-caches`](https://rafalp.github.io/async-caches/), and inspired by Django's cache framework.
+`asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`aiocache`](https://aiocache.aio-libs.org/en/latest/), and inspired by Django's cache framework.
 
-Documentation is available at: https://florimondmanca.github.io/asgi-caches/
+Documentation is available at: https://mattmess1221.github.io/asgi-caches/
 
 **Note**: this project is in an "alpha" status. Several features still need to be implemented, and you should expect breaking API changes across minor versions.
 
@@ -15,22 +15,29 @@ Documentation is available at: https://florimondmanca.github.io/asgi-caches/
 - Compatibility with any ASGI application (e.g. Starlette, FastAPI, Quart, etc.).
 - Support for application-wide or per-endpoint caching.
 - Ability to fine-tune the cache behavior (TTL, cache control) down to the endpoint level.
-- Clean and explicit API enabled by a loose coupling with `async-caches`.
+- Clean and explicit API enabled by a loose coupling with `aiocache`.
 - Fully type annotated.
 - 100% test coverage.
 
 ## Installation
 
 ```bash
-pip install "asgi-caches==0.*"
+pip install "asgi-caches"
+```
+
+To install with redis or memcached support, use:
+
+```bash
+pip install "asgi-caches[redis,memcached]"
 ```
 
 ## Quickstart
 
 ```python
+from aiocache import Cache
 from asgi_caches.middleware import CacheMiddleware
 
-cache = Cache("locmem://null")
+cache = Cache(ttl=2 * 60)
 
 async def app(scope, receive, send):
     assert scope["type"] == "http"
@@ -43,11 +50,11 @@ app = CacheMiddleware(app, cache=cache)
 
 This example:
 
-- Sets up an in-memory cache (see the [async-caches docs](https://rafalp.github.io/async-caches/) for specifics).
+- Sets up an in-memory cache (see the [aiocache docs](https://aiocache.aio-libs.org/en/latest/) for specifics).
 - Sets up an application (in this case, a raw-ASGI 'Hello, world!' app).
 - Applies caching on the entire application.
 
-To learn more, head to the [documentation](https://florimondmanca.github.io/asgi-caches/).
+To learn more, head to the [documentation](https://mattmess1221.github.io/asgi-caches/).
 
 ## Credits
 
