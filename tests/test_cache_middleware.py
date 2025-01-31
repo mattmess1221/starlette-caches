@@ -1,5 +1,6 @@
 import datetime as dt
 import gzip
+import re
 import typing
 
 import httpx
@@ -85,6 +86,64 @@ async def test_non_cachable_request() -> None:
 
         r1 = await client.post("/")
         assert ComparableHTTPXResponse(r1) == r
+        assert spy.misses == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("path", "match_path"),
+    [
+        ("/cache", "/cache"),
+        ("/cache/subpath", re.compile(r"\/cache\/.+")),
+    ],
+)
+async def test_cache_match_paths(path: str, match_path: re.Pattern) -> None:
+    cache = Cache()
+    spy = CacheSpy(PlainTextResponse("Hello, world!"))
+    app = CacheMiddleware(spy, cache=cache, match_paths=[match_path])
+    client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="http://testserver"
+    )
+
+    async with cache, client:
+        assert spy.misses == 0
+
+        r = await client.get(path)
+        assert r.status_code == 200
+        assert r.text == "Hello, world!"
+        assert spy.misses == 1
+
+        r1 = await client.get(path)
+        assert r1.status_code == 200
+        assert r1.text == "Hello, world!"
+        assert spy.misses == 1
+
+        r2 = await client.get("/")
+        assert r2.status_code == 200
+        assert r2.text == "Hello, world!"
+        assert spy.misses == 2
+
+
+@pytest.mark.asyncio
+async def test_cache_deny_paths() -> None:
+    cache = Cache()
+    spy = CacheSpy(PlainTextResponse("Hello, world!"))
+    app = CacheMiddleware(spy, cache=cache, deny_paths=["/no_cache"])
+    client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="http://testserver"
+    )
+
+    async with cache, client:
+        assert spy.misses == 0
+
+        r = await client.get("/no_cache")
+        assert r.status_code == 200
+        assert r.text == "Hello, world!"
+        assert spy.misses == 1
+
+        r1 = await client.get("/no_cache")
+        assert r1.status_code == 200
+        assert r1.text == "Hello, world!"
         assert spy.misses == 2
 
 

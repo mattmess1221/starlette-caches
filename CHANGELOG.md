@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - BREAKING: Switch to [aiocache](https://pypi.org/project/aiocache) for caching backends. This enables you to choose between memory, redis, or memcached as backends, as well as customize how the cached data is serialized.
 
+### Added
+
+- Add `match_paths` and `deny_paths` options for CacheMiddleware to allow for more fine-grained control over which paths are cached.
+
 ### Internal
 
 - Switch build backend to hatchling.

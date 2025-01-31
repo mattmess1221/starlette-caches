@@ -1,3 +1,4 @@
+import re
 import typing
 
 from aiocache import BaseCache as Cache
@@ -23,9 +24,18 @@ async def unattached_send(message: Message) -> None:
 
 
 class CacheMiddleware:
-    def __init__(self, app: ASGIApp, *, cache: Cache) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        cache: Cache,
+        match_paths: typing.Sequence[typing.Union[str, re.Pattern]] = ("*",),
+        deny_paths: typing.Sequence[typing.Union[str, re.Pattern]] = (),
+    ) -> None:
         self.app = app
         self.cache = cache
+        self.match_paths = match_paths
+        self.deny_paths = deny_paths
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -44,23 +54,67 @@ class CacheMiddleware:
 
         scope["__asgi_caches__"] = True
 
-        responder = CacheResponder(self.app, cache=self.cache)
+        responder = CacheResponder(
+            self.app,
+            cache=self.cache,
+            match_paths=self.match_paths,
+            deny_paths=self.deny_paths,
+        )
         await responder(scope, receive, send)
 
 
 class CacheResponder:
-    def __init__(self, app: ASGIApp, *, cache: Cache) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        cache: Cache,
+        match_paths: typing.Sequence[typing.Union[str, re.Pattern]],
+        deny_paths: typing.Sequence[typing.Union[str, re.Pattern]],
+    ) -> None:
         self.app = app
         self.cache = cache
+        self.match_paths = match_paths
+        self.deny_paths = deny_paths
+
         self.send: Send = unattached_send
         self.initial_message: Message = {}
         self.is_response_cachable = True
         self.request: typing.Optional[Request] = None
 
+    def is_path_in_list(
+        self, request: Request, pathlist: typing.Sequence[typing.Union[str, re.Pattern]]
+    ) -> bool:
+        path = request.url.path
+        for item in pathlist:
+            if isinstance(item, str):
+                if item == "*" or item == path:
+                    return True
+            else:
+                if item.match(path):
+                    return True
+        return False
+
+    def is_path_in_denylist(self, request: Request) -> bool:
+        return self.is_path_in_list(request, self.deny_paths)
+
+    def is_path_in_allowlist(self, request: Request) -> bool:
+        return self.is_path_in_list(request, self.match_paths)
+
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
 
         request = Request(scope)
+
+        if self.is_path_in_denylist(request):
+            logger.trace("request_not_cachable reason=denylist")
+            await self.app(scope, receive, send)
+            return
+
+        if not self.is_path_in_allowlist(request):
+            logger.trace("request_not_cachable reason=allowlist")
+            await self.app(scope, receive, send)
+            return
 
         try:
             response = await get_from_cache(request, cache=self.cache)
