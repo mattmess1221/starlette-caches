@@ -1,7 +1,7 @@
 # asgi-caches
 
-[![Build Status](https://travis-ci.com/florimondmanca/asgi-caches.svg?branch=master)](https://travis-ci.com/florimondmanca/asgi-caches)
-[![Coverage](https://codecov.io/gh/florimondmanca/asgi-caches/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-caches)
+[![Build Status](https://github.com/mattmess1221/asgi-caches/actions/workflows/ci.yml/badge.svg)](https://travis-ci.com/florimondmanca/asgi-caches)
+[![Coverage](https://codecov.io/gh/mattmess1221/asgi-caches/branch/master/graph/badge.svg)](https://codecov.io/gh/mattmess1221/asgi-caches)
 [![Package version](https://badge.fury.io/py/asgi-caches.svg)](https://pypi.org/project/asgi-caches)
 
 `asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`aiocache`](https://aiocache.aio-libs.org/en/latest/), and inspired by Django's cache framework.
