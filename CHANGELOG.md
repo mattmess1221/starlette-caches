@@ -4,34 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 0.3.1 - 2019-11-23
+## Unreleased
 
 ### Changed
 
-- Disallow applying cache middleware multiple times. (Pull #21)
+- BREAKING: Switch to [aiocache](https://pypi.org/project/aiocache) for caching backends. This enables you to choose between memory, redis, or memcached as backends, as well as customize how the cached data is serialized.
 
-## 0.3.0 - 2019-11-12
+### Internal
 
-### Added
+- Switch build backend to hatchling.
+- Run tests using github actions, with a tox config for running locally.
 
-- Add `@cache_control()` decorator and its underlying middleware. (Pull #19)
+## Older releases
 
-## 0.2.0 - 2019-11-12
-
-### Added
-
-- Add `@cached()` decorator. (Pull #15)
-
-## 0.1.1 - 2019-11-12
-
-### Added
-
-- Add `DEBUG` and `TRACE` logs. (Pull #14)
-
-## 0.1.0 - 2019-11-12
-
-### Added
-
-- Add `CacheMiddleware`. (Pull #8)
-- Prevent caching of responses that have cookies when the request has none. (Pull #9)
-- Prevent caching of responses if the cache TTL is zero. (Pull #10)
+Older changes can be found in the original project's [changelog](https://github.com/florimondmanca/asgi-caches/blob/master/CHANGELOG.md).
