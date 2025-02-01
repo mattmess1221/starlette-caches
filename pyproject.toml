@@ -54,13 +54,7 @@ docs = [
 ]
 
 lint = [
-    "autoflake",
-    "black",
-    "flake8",
-    "flake8-bugbear",
-    "flake8-comprehensions",
-    "isort",
-    "seed-isort-config",
+    "ruff>=0.9.4",
 ]
 types = [
     "mypy>=1.14.1",
@@ -87,3 +81,13 @@ skip_empty = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
 allow_empty_bodies = true
+
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "I",
+    "B",
+    "C4",
+]
