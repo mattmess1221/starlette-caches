@@ -1,8 +1,11 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 site_name: asgi-caches
 site_description: Server-side HTTP caching for ASGI applications, inspired by Django's cache framework
 
 theme:
   name: material
+  icon:
+    repo: fontawesome/brands/github
 
 repo_name: mattmess1221/asgi-caches
 repo_url: https://github.com/mattmess1221/asgi-caches
@@ -11,9 +14,38 @@ edit_uri: ""
 nav:
   - Introduction: "index.md"
   - User Guide: "usage.md"
-  - Changelog: "https://github.com/mattmess1221/asgi-caches/tree/master/CHANGELOG.md"
+  - Reference: "reference.md"
+  - Changelog: "changelog.md"
+
+plugins:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://www.starlette.io/objects.inv
+            - https://aiocache.aio-libs.org/en/latest/objects.inv
+          paths:
+            - src
+          options:
+            # members
+            show_submodules: true
+            summary: true
+            # docstrings
+            merge_init_into_class: true
+            show_if_no_docstring: true
+            # signatures
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
 
 markdown_extensions:
   - admonition
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: mattmess1221
+      repo: asgi-caches
   - codehilite:
       guess_lang: false
