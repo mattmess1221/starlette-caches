@@ -1,8 +1,3 @@
-<style>
-.md-sidebar--secondary .md-nav__list .md-nav__list {
-    /* display: none */
-}
-</style>
 # Changelog
 
 All notable changes to this project will be documented in this file.
