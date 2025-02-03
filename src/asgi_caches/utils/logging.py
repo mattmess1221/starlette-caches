@@ -1,3 +1,4 @@
+# noqa: A005
 import logging
 import os
 import sys
@@ -40,9 +41,7 @@ class LoggerFactory:
         logger.addHandler(handler)
 
     def get(self, name: str) -> Logger:
-        """
-        Get a logger instance, and optionally set up logging.
-        """
+        """Get a logger instance, and optionally set up logging."""
         if not getattr(self, "_initialized", False):
             logging.addLevelName(TRACE_LOG_LEVEL, "TRACE")
             log_level = os.environ.get(self.log_level_env_var, "").upper()

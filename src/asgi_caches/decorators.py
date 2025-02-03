@@ -1,17 +1,18 @@
+from __future__ import annotations
+
 import functools
 import typing
-
-from aiocache import BaseCache as Cache
-from starlette.types import ASGIApp
 
 from .middleware import CacheControlMiddleware, CacheMiddleware
 from .utils.misc import is_asgi3
 
+if typing.TYPE_CHECKING:
+    from aiocache import BaseCache as Cache
+    from starlette.types import ASGIApp
+
 
 def cached(cache: Cache) -> typing.Callable:
-    """
-    Decorator for ASGI endpoints that tries to get the response from the cache,
-    or populates the cache if the response isn't cached yet.
+    """Wrap an ASGI endpoint with [asgi_caches.middleware.CacheMiddleware][].
 
     This decorator provides the same behavior than `CacheMiddleware`,
     but at an endpoint level.
@@ -28,9 +29,7 @@ def cached(cache: Cache) -> typing.Callable:
 
 
 def cache_control(**kwargs: typing.Any) -> typing.Callable:
-    """
-    Decorator for ASGI endpoints that patches Cache-Control directives on the response.
-    """
+    """Wrap an ASGI endpoint with [asgi_caches.middleware.CacheControlMiddleware][]."""
 
     def wrap(app: ASGIApp) -> ASGIApp:
         _validate_asgi3(app)

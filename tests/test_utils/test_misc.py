@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import typing
 
 import pytest
-from starlette.requests import Request
-from starlette.responses import Response
-from starlette.types import Receive, Scope, Send
 
 from asgi_caches.utils.misc import is_asgi3
+
+if typing.TYPE_CHECKING:
+    from starlette.requests import Request
+    from starlette.responses import Response
+    from starlette.types import Receive, Scope, Send
 
 
 class CallableClass:
@@ -34,7 +38,7 @@ async def view(request: Request) -> Response: ...  # pragma: no cover
 
 
 @pytest.mark.parametrize(
-    "app, output",
+    ("app", "output"),
     [
         (CallableClass, False),
         (callable_instance, True),
@@ -44,5 +48,5 @@ async def view(request: Request) -> Response: ...  # pragma: no cover
         (object(), False),
     ],
 )
-def test_is_asgi3(app: typing.Any, output: bool) -> None:
+def test_is_asgi3(*, app: typing.Any, output: bool) -> None:
     assert is_asgi3(app) == output

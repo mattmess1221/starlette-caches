@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import logging
 import os
@@ -5,9 +7,11 @@ import typing
 
 import httpx
 from starlette.responses import Response
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 import asgi_caches.utils.logging
+
+if typing.TYPE_CHECKING:
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 async def mock_receive() -> Message:
@@ -19,7 +23,7 @@ async def mock_send(message: Message) -> None:
 
 
 class CacheSpy:
-    def __init__(self, app: ASGIApp):
+    def __init__(self, app: ASGIApp) -> None:
         self.app = app
         self.misses = 0
 

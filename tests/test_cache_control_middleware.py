@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import typing
 
 import httpx
 import pytest
 from starlette.responses import PlainTextResponse
-from starlette.types import ASGIApp, Receive, Scope, Send
 
 from asgi_caches.middleware import CacheControlMiddleware
 from tests.utils import mock_receive, mock_send
 
+if typing.TYPE_CHECKING:
+    from starlette.types import ASGIApp, Receive, Scope, Send
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "initial, kwargs, result",
+    ("initial", "kwargs", "result"),
     [
         pytest.param(None, {}, None, id="no-op"),
         pytest.param("stale-if-error=30", {}, "stale-if-error=30", id="copy-initial"),
@@ -53,9 +57,9 @@ from tests.utils import mock_receive, mock_send
     ],
 )
 async def test_cache_control_middleware(
-    initial: typing.Optional[str],
+    initial: str | None,
     kwargs: dict,
-    result: typing.Optional[typing.Union[str, typing.Type[BaseException]]],
+    result: str | type[BaseException] | None,
 ) -> None:
     app: ASGIApp = PlainTextResponse(
         "Hello, world!",

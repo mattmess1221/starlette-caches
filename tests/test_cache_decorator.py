@@ -1,16 +1,22 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import httpx
 import pytest
 from aiocache import Cache
 from starlette.applications import Starlette
 from starlette.endpoints import HTTPEndpoint
-from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response
 from starlette.routing import Route
-from starlette.types import Receive, Scope, Send
 
 from asgi_caches.decorators import cached
 from asgi_caches.middleware import CacheMiddleware
 from tests.utils import CacheSpy
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
+    from starlette.types import Receive, Scope, Send
 
 
 @pytest.mark.asyncio
@@ -105,7 +111,7 @@ async def test_decorator_starlette_endpoint() -> None:
 async def test_decorate_starlette_view() -> None:
     cache = Cache(ttl=2 * 60)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="does not seem to be an ASGI3 callable"):
 
         @cached(cache)
         async def home(request: Request) -> Response: ...  # pragma: no cover

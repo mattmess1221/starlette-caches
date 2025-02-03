@@ -78,6 +78,10 @@ fail_under = 100
 show_missing = true
 skip_empty = true
 
+exclude_also = [
+    "if .*TYPE_CHECKING:",
+]
+
 [tool.mypy]
 disallow_untyped_defs = true
 ignore_missing_imports = true
@@ -85,10 +89,51 @@ allow_empty_bodies = true
 
 [tool.ruff.lint]
 select = [
-    "F",
-    "E",
-    "W",
-    "I",
-    "B",
-    "C4",
+    "F",     # pyflakes,
+    "E",     # pycodestyle error   
+    "W",     # pycodestyle warning
+    "I",     # isort
+    "D",     # pycodestyle
+    "UP",    # pyupgrade
+    "ANN",   # flake8-annotations
+    "ASYNC", # flake8-async
+    "S",     # flake8-bandit
+    "BLE",   # flake8-blind-except
+    "FBT",   # flake8-boolean-trap
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "C4",    # flake8-comprehensions
+    "DTZ",   # flake8-datetimez
+    "FA",    # flake8-future-annotations
+    "PIE",   # flake8-pie
+    "T20",   # flake8-print
+    "PT",    # flake8-pytest
+    "RSE",   # flake8-raise
+    "RET",   # flake8-return
+    "SLF",   # flake8-self
+    "SLOT",  # flake8-slot
+    "SIM",   # flake8-simplify
+    "TC",    # flake8-type-checking
+    "TD",    # flake8-todos
+    "FIX",   # flake8-fixme
+    "ERA",   # eradicate
+    "PLE",   # pylint error
+    "PLC",   # pylint convention
+    "FLY",   # flynt
+    "PERF",  # perflint
+    "FURB",  # refurb
+    "RUF",   # ruff specific rules
+]
+
+ignore = [
+    "D1",
+    "D203",
+    "D213",
+    "S101",
+    "ANN401",
+]
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "D",
+    "SLF001",
 ]

@@ -1,6 +1,4 @@
-"""
-Utilities that add HTTP-specific functionality to the
-otherwise protocol-agnostic features in aiocache.
+"""Utilities that add HTTP-specific to aiocache.
 
 The `store_in_cache()` and `get_from_cache()` helpers are the main pieces of API
 defined in this module:
@@ -9,20 +7,26 @@ defined in this module:
 * `get_from_cache()` retrieves and uses this cache key for a new `request`.
 """
 
+from __future__ import annotations
+
 import hashlib
 import time
 import typing
 from urllib.request import parse_http_list
 
-from aiocache import BaseCache
-from starlette.datastructures import MutableHeaders
-from starlette.requests import Request
 from starlette.responses import Response
 
 from ..exceptions import RequestNotCachable, ResponseNotCachable
 from ..rules import Rule, get_rule_matching_request, get_rule_matching_response
 from .logging import get_logger
 from .misc import bytes_to_json_string, http_date, json_string_to_bytes
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from aiocache import BaseCache
+    from starlette.datastructures import MutableHeaders
+    from starlette.requests import Request
 
 logger = get_logger(__name__)
 
@@ -40,10 +44,9 @@ async def store_in_cache(
     *,
     request: Request,
     cache: BaseCache,
-    rules: typing.Sequence[Rule],
+    rules: Sequence[Rule],
 ) -> None:
-    """
-    Given a response and a request, store the response in the cache for reuse.
+    """Given a response and a request, store the response in the cache for reuse.
 
     To do so, a cache key is built from:
 
@@ -107,11 +110,9 @@ async def store_in_cache(
 
 
 async def get_from_cache(
-    request: Request, *, cache: BaseCache, rules: typing.Sequence[Rule]
-) -> typing.Optional[Response]:
-    """
-    Given a GET or HEAD request, retrieve a cached response based on the cache key
-    associated to the request.
+    request: Request, *, cache: BaseCache, rules: Sequence[Rule]
+) -> Response | None:
+    """Retrieve a cached response based on the cache key associated to the request.
 
     If no cache key is present yet, or if there is no cached response at
     that key, return `None`.
@@ -140,7 +141,7 @@ async def get_from_cache(
         logger.trace("cache_key found=False")
         return None
     logger.trace(f"cache_key found=True cache_key={cache_key!r}")
-    serialized_response: typing.Optional[dict] = await cache.get(cache_key)
+    serialized_response: dict | None = await cache.get(cache_key)
 
     # If not present, fallback to look for a cached HEAD response.
     if serialized_response is None:
@@ -157,8 +158,7 @@ async def get_from_cache(
     logger.trace(
         f"cached_response found=True key={cache_key!r} value={serialized_response!r}"
     )
-    response = deserialize_response(serialized_response)
-    return response
+    return deserialize_response(serialized_response)
 
 
 def serialize_response(response: Response) -> dict:
@@ -175,10 +175,7 @@ def serialize_response(response: Response) -> dict:
 
 
 def deserialize_response(serialized_response: dict) -> Response:
-    """
-    Given the JSON representation of a response, re-build the
-    original response object.
-    """
+    """Re-build the original response object from a json-serialized object."""
     return Response(
         content=json_string_to_bytes(serialized_response["content"]),
         status_code=serialized_response["status_code"],
@@ -189,8 +186,7 @@ def deserialize_response(serialized_response: dict) -> Response:
 async def learn_cache_key(
     request: Request, response: Response, *, cache: BaseCache
 ) -> str:
-    """
-    Generate a cache key from the requested absolute URL.
+    """Generate a cache key from the requested absolute URL.
 
     Varying response headers are stored at another key based from the
     requested absolute URL.
@@ -202,11 +198,11 @@ async def learn_cache_key(
     )
     varying_headers_cache_key = generate_varying_headers_cache_key(request, cache=cache)
 
-    varying_headers: typing.List[str] = []
+    varying_headers: list[str] = []
     if "Vary" in response.headers:
-        for header in parse_http_list(response.headers["Vary"]):
-            varying_headers.append(header.lower())
-        varying_headers.sort()
+        varying_headers = sorted(
+            header.lower() for header in parse_http_list(response.headers["Vary"])
+        )
 
     logger.trace(
         "store_varying_headers "
@@ -219,11 +215,9 @@ async def learn_cache_key(
     )
 
 
-async def get_cache_key(
-    request: Request, method: str, cache: BaseCache
-) -> typing.Optional[str]:
-    """
-    Given a request, return the cache key where a cached response should be looked up.
+async def get_cache_key(request: Request, method: str, cache: BaseCache) -> str | None:
+    """Return the cache key where a cached response should be looked up.
+
     If this request hasn't been served before, return `None` as there definitely
     won't be any matching cached response.
     """
@@ -247,12 +241,10 @@ async def get_cache_key(
 def generate_cache_key(
     request: Request,
     method: str,
-    varying_headers: typing.List[str],
+    varying_headers: list[str],
     cache: BaseCache,
 ) -> str:
-    """
-    Return a cache key generated from the request full URL and varying
-    response headers.
+    """Generate a cache key from the request full URL and varying response headers.
 
     Note that the given `method` may be different from that of the request, e.g.
     because we're trying to find a response cached from a previous GET request
@@ -261,31 +253,29 @@ def generate_cache_key(
     """
     assert method in CACHABLE_METHODS
 
-    ctx = hashlib.md5()
+    ctx = hashlib.md5(usedforsecurity=False)
     for header in varying_headers:
         value = request.headers.get(header)
         if value is not None:
             ctx.update(value.encode())
 
     absolute_url = str(request.url)
-    url = hashlib.md5(absolute_url.encode("ascii"))
+    url = hashlib.md5(absolute_url.encode("ascii"), usedforsecurity=False)
 
     return cache.build_key(f"cache_page.{method}.{url.hexdigest()}.{ctx.hexdigest()}")
 
 
 def generate_varying_headers_cache_key(request: Request, cache: BaseCache) -> str:
-    """
-    Return a cache key generated from the requested absolute URL, suitable for
-    associating varying headers to a requested URL.
+    """Generate a cache key from the requested absolute URL.
+
+    Suitable for associating varying headers to a requested URL.
     """
     url = request.url.path
-    url_hash = hashlib.md5(url.encode("ascii"))
+    url_hash = hashlib.md5(url.encode("ascii"), usedforsecurity=False)
     return cache.build_key(f"varying_headers.{url_hash.hexdigest()}")
 
 
-def get_cache_response_headers(
-    response: Response, *, max_age: int
-) -> typing.Dict[str, str]:
+def get_cache_response_headers(response: Response, *, max_age: int) -> dict[str, str]:
     """Return caching-related headers to add to a response."""
     assert max_age >= 0, "Can't have a negative cache max-age"
     headers = {}
@@ -299,15 +289,17 @@ def get_cache_response_headers(
 
 
 def patch_cache_control(headers: MutableHeaders, **kwargs: typing.Any) -> None:
+    """Patch headers with an extended version of the initial Cache-Control header.
+
+    Appends all keyword arguments to the Cache-Control header.
+
+    True values are added as flags, while false values are omitted.
     """
-    Patch headers with an extended version of the initial Cache-Control header by adding
-    all keyword arguments to it.
-    """
-    cache_control: typing.Dict[str, typing.Any] = {}
+    cache_control: dict[str, typing.Any] = {}
     for field in parse_http_list(headers.get("Cache-Control", "")):
         try:
             key, value = field.split("=")
-        except ValueError:
+        except ValueError:  # noqa: PERF203
             cache_control[field] = True
         else:
             cache_control[key] = value
@@ -329,7 +321,7 @@ def patch_cache_control(headers: MutableHeaders, **kwargs: typing.Any) -> None:
         key = key.replace("_", "-")
         cache_control[key] = value
 
-    directives: typing.List[str] = []
+    directives: list[str] = []
     for key, value in cache_control.items():
         if value is False:
             continue

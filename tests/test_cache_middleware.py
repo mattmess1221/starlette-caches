@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime as dt
 import gzip
 import re
@@ -12,12 +14,14 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.middleware import Middleware
 from starlette.responses import PlainTextResponse, StreamingResponse
 from starlette.routing import Route
-from starlette.types import Receive, Scope, Send
 
 from asgi_caches.exceptions import DuplicateCaching
 from asgi_caches.middleware import CacheMiddleware
 from asgi_caches.rules import Rule
 from tests.utils import CacheSpy, ComparableHTTPXResponse, mock_receive, mock_send
+
+if typing.TYPE_CHECKING:
+    from starlette.types import Receive, Scope, Send
 
 
 @pytest.mark.asyncio
@@ -242,7 +246,7 @@ async def test_rule_stacking() -> None:
 
 
 @pytest.mark.parametrize(
-    "status_code", (201, 202, 307, 308, 400, 401, 403, 500, 502, 503)
+    "status_code", [201, 202, 307, 308, 400, 401, 403, 500, 502, 503]
 )
 @pytest.mark.asyncio
 async def test_not_200_ok(status_code: int) -> None:

@@ -1,16 +1,22 @@
+from __future__ import annotations
+
 import typing
 
-from aiocache.base import BaseCache as Cache
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .exceptions import DuplicateCaching, RequestNotCachable, ResponseNotCachable
 from .rules import Rule
 from .utils.cache import get_from_cache, patch_cache_control, store_in_cache
 from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
 from .utils.misc import kvformat
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from aiocache.base import BaseCache as Cache
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = get_logger(__name__)
 
@@ -36,6 +42,7 @@ class CacheMiddleware:
         app: The ASGI application to wrap.
         cache: The cache instance to use.
         rules: A sequence of rules for caching behavior.
+
     """
 
     def __init__(
@@ -43,7 +50,7 @@ class CacheMiddleware:
         app: ASGIApp,
         *,
         cache: Cache,
-        rules: typing.Optional[typing.Sequence[Rule]] = None,
+        rules: Sequence[Rule] | None = None,
     ) -> None:
         if rules is None:
             rules = [Rule()]
@@ -83,7 +90,7 @@ class CacheResponder:
         app: ASGIApp,
         *,
         cache: Cache,
-        rules: typing.Sequence[Rule],
+        rules: Sequence[Rule],
     ) -> None:
         self.app = app
         self.cache = cache
@@ -92,7 +99,7 @@ class CacheResponder:
         self.send: Send = unattached_send
         self.initial_message: Message = {}
         self.is_response_cachable = True
-        self.request: typing.Optional[Request] = None
+        self.request: Request | None = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
@@ -165,9 +172,10 @@ class CacheControlMiddleware:
     See Also:
     --------
     - [Cache-Control - HTTP | MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+
     """
 
-    def __init__(self, app: ASGIApp, **kwargs: typing.Union[str, bool]) -> None:
+    def __init__(self, app: ASGIApp, **kwargs: str | bool) -> None:
         self.app = app
         self.kwargs = kwargs
 

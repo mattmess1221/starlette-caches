@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import re
 import typing
-from collections.abc import Iterable
 from dataclasses import dataclass
 
-from starlette.requests import Request
-from starlette.responses import Response
+if typing.TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
+
+    from starlette.requests import Request
+    from starlette.responses import Response
 
 
 @dataclass
@@ -20,7 +24,7 @@ class Rule:
     All arguments are optional.
     """
 
-    match: typing.Union[str, re.Pattern, Iterable[str], Iterable[re.Pattern]] = "*"
+    match: str | re.Pattern | Iterable[str | re.Pattern] = "*"
     """The request path to match.
 
     If a regular expression is provided, it will be matched against the request path.
@@ -31,13 +35,13 @@ class Rule:
     If the request path matches any item in the sequence, the rule will match.
     """
 
-    status: typing.Optional[typing.Union[int, typing.Iterable[int]]] = None
+    status: int | Iterable[int] | None = None
     """An integer or sequence of integers that match the response status code.
 
     If the response status code matches any item in the sequence, the rule will match.
     """
 
-    ttl: typing.Optional[float] = None
+    ttl: float | None = None
     """Time-to-live for the cached response in seconds.
 
     If set, the response will be cached for the specified duration. If not set, the
@@ -74,19 +78,19 @@ def response_matches_rule(rule: Rule, *, request: Request, response: Response) -
 
 
 def get_rule_matching_request(
-    rules: typing.Sequence[Rule], *, request: Request
-) -> typing.Optional[Rule]:
+    rules: Sequence[Rule], *, request: Request
+) -> Rule | None:
     return next(
         (rule for rule in rules if request_matches_rule(rule, request=request)), None
     )
 
 
 def get_rule_matching_response(
-    rules: typing.Sequence[Rule],
+    rules: Sequence[Rule],
     *,
     request: Request,
     response: Response,
-) -> typing.Optional[Rule]:
+) -> Rule | None:
     return next(
         (
             rule

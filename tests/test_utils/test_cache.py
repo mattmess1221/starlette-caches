@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime as dt
 import typing
 
@@ -6,7 +8,6 @@ import pytest_asyncio
 from aiocache import BaseCache, Cache
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
-from starlette.types import Scope
 
 from asgi_caches.exceptions import RequestNotCachable, ResponseNotCachable
 from asgi_caches.rules import Rule
@@ -17,6 +18,9 @@ from asgi_caches.utils.cache import (
     store_in_cache,
 )
 from tests.utils import ComparableStarletteResponse
+
+if typing.TYPE_CHECKING:
+    from starlette.types import Scope
 
 pytestmark = pytest.mark.asyncio
 
@@ -33,7 +37,7 @@ async def fixture_short_cache() -> typing.AsyncIterator[BaseCache]:
         yield cache
 
 
-@pytest.mark.parametrize("method", ("GET", "HEAD"))
+@pytest.mark.parametrize("method", ["GET", "HEAD"])
 async def test_get_from_emtpy_cache(cache: BaseCache, method: str) -> None:
     scope: Scope = {
         "type": "http",
@@ -47,7 +51,7 @@ async def test_get_from_emtpy_cache(cache: BaseCache, method: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "method", ("POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE")
+    "method", ["POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE"]
 )
 async def test_non_cachable_methods(cache: BaseCache, method: str) -> None:
     scope: Scope = {
@@ -82,7 +86,7 @@ async def test_store_in_cache(cache: BaseCache) -> None:
 
 
 @pytest.mark.parametrize(
-    "status_code", (201, 202, 307, 308, 400, 401, 403, 500, 502, 503)
+    "status_code", [201, 202, 307, 308, 400, 401, 403, 500, 502, 503]
 )
 async def test_non_cachable_status_codes(cache: BaseCache, status_code: int) -> None:
     scope: Scope = {

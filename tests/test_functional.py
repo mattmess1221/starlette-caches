@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 import math
 import typing
@@ -5,10 +7,13 @@ import typing
 import httpx
 import pytest
 import pytest_asyncio
-from starlette.types import ASGIApp
 
 from tests.examples.resources import cache, special_cache
-from tests.utils import CacheSpy
+
+if typing.TYPE_CHECKING:
+    from starlette.types import ASGIApp
+
+    from tests.utils import CacheSpy
 
 # TIP: use 'pytest -k <id>' to run tests for a given example application only.
 EXAMPLES = [
@@ -38,9 +43,7 @@ async def fixture_client(app: ASGIApp) -> typing.AsyncIterator[httpx.AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_caching(
-    client: httpx.AsyncClient, spies: typing.Dict[str, CacheSpy]
-) -> None:
+async def test_caching(client: httpx.AsyncClient, spies: dict[str, CacheSpy]) -> None:
     r = await client.get("/")
     assert r.status_code == 200
     assert r.text == "Hello, world!"

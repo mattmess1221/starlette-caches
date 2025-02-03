@@ -15,7 +15,8 @@ def http_date(epoch_time: float) -> str:
 
 
 def bytes_to_json_string(data: bytes) -> str:
-    """
+    """Safely convert a bytes object to string for json.
+
     Given binary data, return a string representation
     that can be safely used in a JSON object.
     """
@@ -26,7 +27,8 @@ def bytes_to_json_string(data: bytes) -> str:
 
 
 def json_string_to_bytes(value: str) -> bytes:
-    """
+    """Convert a json string to a bytes object.
+
     Given a previously-computed JSON-compatible string representation of
     binary data, return the original binary data.
     """

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import math
+from typing import TYPE_CHECKING
 
 from starlette.applications import Starlette
 from starlette.endpoints import HTTPEndpoint
-from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.routing import Mount, Route, request_response
 
@@ -11,6 +13,9 @@ from asgi_caches.middleware import CacheMiddleware
 from tests.utils import CacheSpy
 
 from .resources import cache, special_cache
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 
 
 async def _home(request: Request) -> Response:

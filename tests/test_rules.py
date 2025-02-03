@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import re
-import typing
 
 import pytest
 from starlette.datastructures import URL
@@ -34,7 +35,7 @@ def mock_request(path: str) -> Request:
 
 
 @pytest.mark.parametrize("match", ["/test", re.compile(r"^/test")])
-def test_request_matches_rule(match: typing.Union[str, re.Pattern]) -> None:
+def test_request_matches_rule(match: str | re.Pattern) -> None:
     rule = Rule(match=match)
     request = mock_request("/test")
     assert request_matches_rule(rule, request=request)
