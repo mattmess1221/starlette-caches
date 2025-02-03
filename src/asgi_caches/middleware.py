@@ -166,6 +166,7 @@ class CacheControlMiddleware:
     --------
     - [Cache-Control - HTTP | MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
     """
+
     def __init__(self, app: ASGIApp, **kwargs: typing.Union[str, bool]) -> None:
         self.app = app
         self.kwargs = kwargs

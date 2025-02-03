@@ -50,9 +50,9 @@ def request_matches_rule(
     *,
     request: Request,
 ) -> bool:
-    match = rule.match
-    if isinstance(match, (str, re.Pattern)):
-        match = [match]
+    match = (
+        [rule.match] if isinstance(rule.match, (str, re.Pattern)) else list(rule.match)
+    )
     for item in match:
         if isinstance(item, re.Pattern):
             if item.match(request.url.path):
