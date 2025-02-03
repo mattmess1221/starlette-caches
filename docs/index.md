@@ -43,7 +43,7 @@ This example:
 - Sets up an application (in this case, a raw-ASGI 'Hello, world!' app).
 - Applies caching on the entire application.
 
-To learn more, head to the [User Guide](usage.md).
+To learn more, head to the [User Guide](usage/index.md).
 
 ## Credits
 

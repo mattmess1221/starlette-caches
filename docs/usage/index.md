@@ -22,7 +22,7 @@ There are two ways to enable HTTP caching on an application: on an entire applic
 
 !!! note
     You cannot use endpoint-level caching if application-level caching is enabled.
-    
+
     As a rule of thumb, you should explicitly specify which endpoints should be cached as soon as you need anything more granular than caching all endpoints on the application.
 
 ### Application-wide caching
