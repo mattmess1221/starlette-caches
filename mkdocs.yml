@@ -11,10 +11,15 @@ repo_name: mattmess1221/asgi-caches
 repo_url: https://github.com/mattmess1221/asgi-caches
 edit_uri: ""
 
+watch:
+  - src
+
 nav:
   - Introduction: "index.md"
-  - User Guide: "usage.md"
-  - Reference: "reference.md"
+  - User Guide:
+      - Getting Started: "usage/index.md"
+      - Caching Rules: "usage/rules.md"
+  - API Reference: "reference.md"
   - Changelog: "changelog.md"
 
 plugins:
@@ -42,6 +47,9 @@ plugins:
 
 markdown_extensions:
   - admonition
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
   - pymdownx.magiclink:
       normalize_issue_symbols: true
       repo_url_shorthand: true

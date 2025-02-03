@@ -1,23 +1,48 @@
 import re
 import typing
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from starlette.requests import Request
 from starlette.responses import Response
 
-T = typing.TypeVar("T")
-
-MaybeIter = typing.Union[T, typing.Iterable[T]]
-MaybePattern = typing.Union[str, re.Pattern]
-MatchType = typing.Union[MaybePattern, MaybeIter[MaybePattern]]
-StatusType = MaybeIter[int]
-
 
 @dataclass
 class Rule:
-    match: MatchType = "*"
-    status: typing.Optional[StatusType] = None
+    """A rule for configuring caching behavior.
+
+    A rule is matched if the request path matches the `match` attribute and the response
+    status code matches the `status` attribute.
+
+    If the rule matches, the response will be cached for the duration specified by the
+    `ttl` attribute. A value of 0 will disable caching for the response.
+
+    All arguments are optional.
+    """
+
+    match: typing.Union[str, re.Pattern, Iterable[str], Iterable[re.Pattern]] = "*"
+    """The request path to match.
+
+    If a regular expression is provided, it will be matched against the request path.
+
+    If a sequence is provided, the request path will be matched against each item in the
+    sequence.
+
+    If the request path matches any item in the sequence, the rule will match.
+    """
+
+    status: typing.Optional[typing.Union[int, typing.Iterable[int]]] = None
+    """An integer or sequence of integers that match the response status code.
+
+    If the response status code matches any item in the sequence, the rule will match.
+    """
+
     ttl: typing.Optional[float] = None
+    """Time-to-live for the cached response in seconds.
+
+    If set, the response will be cached for the specified duration. If not set, the
+    default TTL will be used. A value of 0 will disable caching for the response.
+    """
 
 
 def request_matches_rule(

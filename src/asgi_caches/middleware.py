@@ -1,6 +1,6 @@
 import typing
 
-from aiocache import BaseCache as Cache
+from aiocache.base import BaseCache as Cache
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
@@ -29,35 +29,8 @@ class CacheMiddleware:
     This middleware caches responses based on the request path. It can be
     configured with rules that determine which requests and responses should be
     cached. Configure the rules by passing a sequence of `Rule` instances to
-    the `rules` argument.
-
-    Rules:
-
-        The `rules` argument is a sequence of rules that determine which requests and
-        responses should be cached. By default, all requests and responses are cached.
-
-        Responses will match the first rule. If no rule matches, the response will not
-        be cached. Rules that specify a path rules should be placed above rules that
-        use other checks, like status codes.
-
-        To manually disable caching for responses matching a rule, set the `ttl` to 0.
-
-    Status Codes:
-
-        Status codes can be provided as a single integer or as a sequence of integers,
-        like a tuple or frozenset. They can be used without a path rule to match all
-        responses with the specified status code.
-
-        Here is an example rule configuration that uses the default values from
-        Cloudflare Edge.
-
-        ```python
-        rules = [
-            Rule(status=(200, 206, 301), ttl=60*120),   # 120m
-            Rule(status=(302, 303), ttl=60*20),         # 20m
-            Rule(status=(404, 410), ttl=60*3),          # 3m
-        ]
-        ```
+    the `rules` argument. See [Rules](usage/rules.md) for more information on how to
+    configure rules.
 
     Args:
         app: The ASGI application to wrap.
@@ -181,7 +154,19 @@ class CacheResponder:
 
 
 class CacheControlMiddleware:
-    def __init__(self, app: ASGIApp, **kwargs: typing.Any) -> None:
+    """Middleware which handles Cache-Control headers for upstream cache proxies.
+
+    Keyword Args:
+        max_age (float): The maximum age of the response in seconds.
+        public (bool): Not implemented
+        private (bool): Not implemented
+        **kwargs: Additional Cache-Control directives
+
+    See Also:
+    --------
+    - [Cache-Control - HTTP | MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+    """
+    def __init__(self, app: ASGIApp, **kwargs: typing.Union[str, bool]) -> None:
         self.app = app
         self.kwargs = kwargs
 
