@@ -2,7 +2,6 @@
 
 set -x
 
-uv run --group lint black --check --diff --target-version=py39 src/asgi_caches tests
-uv run --group lint isort --check --diff --project=asgi_caches src/asgi_caches tests
-uv run --group lint flake8 src/asgi_caches tests
+uv run --group lint ruff format --check --diff src/asgi_caches tests
+uv run --group lint ruff check src/asgi_caches tests
 uv run --group types mypy src/asgi_caches tests
