@@ -82,6 +82,11 @@ async def test_store_in_cache(cache: BaseCache) -> None:
     assert key is not None
 
     cached_response = deserialize_response(await cache.get(key) or {})
+
+    # We don't care about the "X-Cache" header in the comparison.
+    del response.headers["x-cache"]
+    del cached_response.headers["x-cache"]
+
     assert ComparableStarletteResponse(cached_response) == response
 
 
@@ -131,6 +136,11 @@ async def test_get_from_cache(cache: BaseCache) -> None:
 
     cached_response = await get_from_cache(request, cache=cache, rules=[Rule()])
     assert cached_response is not None
+
+    # We don't care about the "X-Cache" header in the comparison.
+    del response.headers["x-cache"]
+    del cached_response.headers["x-cache"]
+
     assert ComparableStarletteResponse(cached_response) == response
     assert "Expires" in cached_response.headers
     assert "Cache-Control" in cached_response.headers
@@ -194,9 +204,16 @@ async def test_get_from_cache_head(cache: BaseCache) -> None:
     request = Request(scope)
     response = PlainTextResponse("Hello, world!")
     await store_in_cache(response, request=request, cache=cache, rules=[Rule()])
+    assert response.headers["x-cache"] == "miss"
 
     cached_response = await get_from_cache(request, cache=cache, rules=[Rule()])
     assert cached_response is not None
+    assert cached_response.headers["x-cache"] == "hit"
+
+    # We don't care about the "X-Cache" header in the comparison.
+    del response.headers["x-cache"]
+    del cached_response.headers["x-cache"]
+
     assert ComparableStarletteResponse(cached_response) == response
 
 
