@@ -3,18 +3,24 @@ from __future__ import annotations
 import typing
 from functools import partial
 
-from starlette.datastructures import MutableHeaders
+from starlette.datastructures import URL, Headers, MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
 
 from .exceptions import DuplicateCaching, RequestNotCachable, ResponseNotCachable
 from .rules import Rule
-from .utils.cache import get_from_cache, patch_cache_control, store_in_cache
+from .utils.cache import (
+    INVALIDATING_METHODS,
+    delete_from_cache,
+    get_from_cache,
+    patch_cache_control,
+    store_in_cache,
+)
 from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
 from .utils.misc import kvformat
 
 if typing.TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
     from aiocache.base import BaseCache as Cache
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -67,7 +73,7 @@ class CacheMiddleware:
                 "the application is already wrapped around a `CacheMiddleware`."
             )
 
-        scope["__asgi_caches__"] = True
+        scope["__asgi_caches__"] = self
 
         responder = CacheResponder(
             self.app,
@@ -101,7 +107,8 @@ class CacheResponder:
         try:
             response = await get_from_cache(request, cache=self.cache, rules=self.rules)
         except RequestNotCachable:
-            pass
+            if request.method in INVALIDATING_METHODS:
+                send = partial(self.send_then_invalidate, send=send)
         else:
             if response is not None:
                 logger.debug("cache_lookup %s", "HIT", extra=HIT_EXTRA)
@@ -150,6 +157,55 @@ class CacheResponder:
 
         await send(self.initial_message)
         await send(message)
+
+    async def send_then_invalidate(self, message: Message, *, send: Send) -> None:
+        # listen for the response start message and invalidate the cache
+        # if the request method is POST, PUT, PATCH, DELETE, and if the
+        # response status code is 2xx or 3xx
+        assert self.request is not None
+        if message["type"] == "http.response.start" and 200 <= message["status"] < 400:
+            await delete_from_cache(
+                self.request.url,
+                vary=self.request.headers,
+                cache=self.cache,
+            )
+        await send(message)
+
+
+class CacheInvalidator:
+    def __init__(self, request: Request) -> None:
+        self.request = request
+
+        assert "__asgi_caches__" in request.scope, (
+            "No CacheMiddleware instance found in the ASGI scope. Did you forget to "
+            "wrap the ASGI application with `CacheMiddleware`?"
+        )
+        assert isinstance(request.scope["__asgi_caches__"], CacheMiddleware)
+        self.middleware = request.scope["__asgi_caches__"]
+
+    async def invalidate_cache_for(
+        self,
+        url: str | URL,
+        *,
+        headers: Headers | Mapping[str, str] | None = None,
+    ) -> None:
+        """Invalidate the cache for a given named route or full url.
+
+        If the vary is not provided, only responses without a Vary header will be
+        invalidated.
+
+        Args:
+            url: The URL to invalidate or name of a starlette route.
+            headers: The headers used to generate the cache key.
+
+        """
+        if not isinstance(url, URL):
+            url = self.request.url_for(url)
+
+        if not isinstance(headers, Headers):
+            headers = Headers(headers)
+
+        await delete_from_cache(url, vary=headers, cache=self.middleware.cache)
 
 
 class CacheControlMiddleware:

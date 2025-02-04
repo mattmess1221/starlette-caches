@@ -19,6 +19,7 @@ nav:
   - User Guide:
       - Getting Started: "usage/index.md"
       - Caching Rules: "usage/rules.md"
+      - Cache Invalidation: "usage/invalidation.md"
   - API Reference: "reference.md"
   - Changelog: "changelog.md"
 
