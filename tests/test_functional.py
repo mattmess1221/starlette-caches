@@ -41,15 +41,15 @@ async def test_caching(client: httpx.AsyncClient) -> None:
     assert r.text == "Hello, world!"
     assert "Expires" not in r.headers
     assert "Cache-Control" not in r.headers
-    assert 'X-Cache' not in r.headers
+    assert "X-Cache" not in r.headers
 
     r = await client.get("/")
-    assert 'X-Cache' not in r.headers
+    assert "X-Cache" not in r.headers
 
     r = await client.get("/pi")
     assert r.status_code == 200
     assert r.json() == {"value": math.pi}
-    assert r.headers['X-Cache'] == 'miss'
+    assert r.headers["X-Cache"] == "miss"
     assert "Expires" in r.headers
     assert "Cache-Control" in r.headers
     assert r.headers["Cache-Control"] == "max-age=30, must-revalidate"
