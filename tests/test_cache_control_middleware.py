@@ -88,8 +88,7 @@ def test_cache_control_middleware(
                 assert r.headers["Cache-Control"] == result
 
 
-@pytest.mark.asyncio
-async def test_not_http() -> None:
+def test_not_http() -> None:
     lifespan_state = None
 
     @contextlib.asynccontextmanager

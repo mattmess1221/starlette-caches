@@ -10,8 +10,7 @@ from asgi_caches.middleware import CacheMiddleware
 from tests.utils import override_log_level
 
 
-@pytest.mark.asyncio
-async def test_logs_debug(capsys: pytest.CaptureFixture) -> None:
+def test_logs_debug(capsys: pytest.CaptureFixture) -> None:
     cache = Cache(ttl=2 * 60)
     app = Starlette(
         routes=[Route("/", PlainTextResponse("Hello, world!"))],
@@ -30,8 +29,7 @@ async def test_logs_debug(capsys: pytest.CaptureFixture) -> None:
     assert "get_from_cache request.url='http://testserver/" not in stderr
 
 
-@pytest.mark.asyncio
-async def test_logs_trace(capsys: pytest.CaptureFixture) -> None:
+def test_logs_trace(capsys: pytest.CaptureFixture) -> None:
     cache = Cache(ttl=2 * 60)
     app = Starlette(
         routes=[Route("/", PlainTextResponse("Hello, world!"))],
