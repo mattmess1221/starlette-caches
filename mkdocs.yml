@@ -6,6 +6,8 @@ theme:
   name: material
   icon:
     repo: fontawesome/brands/github
+  features:
+    - content.tabs.link
 
 repo_name: mattmess1221/asgi-caches
 repo_url: https://github.com/mattmess1221/asgi-caches
@@ -19,7 +21,6 @@ nav:
   - User Guide:
       - Getting Started: "usage/index.md"
       - Caching Rules: "usage/rules.md"
-      - Cache Invalidation: "usage/invalidation.md"
   - API Reference: "reference.md"
   - Changelog: "changelog.md"
 
@@ -48,7 +49,13 @@ plugins:
 
 markdown_extensions:
   - admonition
+  - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.magiclink:
