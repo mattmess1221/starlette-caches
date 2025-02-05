@@ -25,7 +25,7 @@ if typing.TYPE_CHECKING:
     from collections.abc import Sequence
 
     from aiocache import BaseCache
-    from starlette.datastructures import MutableHeaders
+    from starlette.datastructures import URL, Headers, MutableHeaders
     from starlette.requests import Request
 
 logger = get_logger(__name__)
@@ -37,6 +37,8 @@ CACHABLE_STATUS_CODES = frozenset(
     (200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501)
 )
 ONE_YEAR = 60 * 60 * 24 * 365
+
+INVALIDATING_METHODS = frozenset(("POST", "PUT", "PATCH", "DELETE"))
 
 
 async def store_in_cache(
@@ -170,6 +172,29 @@ async def get_from_cache(
     return deserialize_response(serialized_response)
 
 
+async def delete_from_cache(url: URL, *, vary: Headers, cache: BaseCache) -> None:
+    """Clear the cache for the given request."""
+    varying_headers_cache_key = generate_varying_headers_cache_key(url, cache=cache)
+    varying_headers = await cache.get(varying_headers_cache_key)
+    if varying_headers is None:
+        # Nothing to do, as there's no cache key associated to this URL.
+        return
+
+    for method in "GET", "HEAD":
+        cache_key = generate_cache_key(
+            url,
+            method=method,
+            headers=vary,
+            varying_headers=varying_headers,
+            cache=cache,
+        )
+
+        logger.trace(f"clear_cache key={cache_key!r}")
+        await cache.delete(cache_key)
+
+    await cache.delete(varying_headers_cache_key)
+
+
 def serialize_response(response: Response) -> dict:
     """Convert a response to JSON format.
 
@@ -205,7 +230,8 @@ async def learn_cache_key(
         f"request.method={request.method!r} "
         f"response.headers.Vary={response.headers.get('Vary')!r}"
     )
-    varying_headers_cache_key = generate_varying_headers_cache_key(request, cache=cache)
+    url = request.url
+    varying_headers_cache_key = generate_varying_headers_cache_key(url, cache=cache)
 
     varying_headers: list[str] = []
     if "Vary" in response.headers:
@@ -220,7 +246,11 @@ async def learn_cache_key(
     await cache.set(key=varying_headers_cache_key, value=varying_headers)
 
     return generate_cache_key(
-        request, method=request.method, varying_headers=varying_headers, cache=cache
+        url,
+        method=request.method,
+        headers=request.headers,
+        varying_headers=varying_headers,
+        cache=cache,
     )
 
 
@@ -230,8 +260,9 @@ async def get_cache_key(request: Request, method: str, cache: BaseCache) -> str 
     If this request hasn't been served before, return `None` as there definitely
     won't be any matching cached response.
     """
-    logger.trace(f"get_cache_key request.url={str(request.url)!r} method={method!r}")
-    varying_headers_cache_key = generate_varying_headers_cache_key(request, cache=cache)
+    url = request.url
+    logger.trace(f"get_cache_key request.url={str(url)!r} method={method!r}")
+    varying_headers_cache_key = generate_varying_headers_cache_key(url, cache=cache)
     varying_headers = await cache.get(varying_headers_cache_key)
 
     if varying_headers is None:
@@ -240,16 +271,18 @@ async def get_cache_key(request: Request, method: str, cache: BaseCache) -> str 
     logger.trace(f"varying_headers found=True headers={varying_headers!r}")
 
     return generate_cache_key(
-        request,
+        request.url,
         method=method,
+        headers=request.headers,
         varying_headers=varying_headers,
         cache=cache,
     )
 
 
 def generate_cache_key(
-    request: Request,
+    url: URL,
     method: str,
+    headers: Headers,
     varying_headers: list[str],
     cache: BaseCache,
 ) -> str:
@@ -264,23 +297,22 @@ def generate_cache_key(
 
     ctx = hashlib.md5(usedforsecurity=False)
     for header in varying_headers:
-        value = request.headers.get(header)
+        value = headers.get(header)
         if value is not None:
             ctx.update(value.encode())
+    vary_hash = ctx.hexdigest()
 
-    absolute_url = str(request.url)
-    url = hashlib.md5(absolute_url.encode("ascii"), usedforsecurity=False)
+    url_hash = hashlib.md5(str(url).encode("ascii"), usedforsecurity=False).hexdigest()
 
-    return cache.build_key(f"cache_page.{method}.{url.hexdigest()}.{ctx.hexdigest()}")
+    return cache.build_key(f"cache_page.{method}.{url_hash}.{vary_hash}")
 
 
-def generate_varying_headers_cache_key(request: Request, cache: BaseCache) -> str:
+def generate_varying_headers_cache_key(url: URL, cache: BaseCache) -> str:
     """Generate a cache key from the requested absolute URL.
 
     Suitable for associating varying headers to a requested URL.
     """
-    url = request.url.path
-    url_hash = hashlib.md5(url.encode("ascii"), usedforsecurity=False)
+    url_hash = hashlib.md5(str(url.path).encode("ascii"), usedforsecurity=False)
     return cache.build_key(f"varying_headers.{url_hash.hexdigest()}")
 
 

@@ -7,17 +7,31 @@ from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
 
-from .exceptions import DuplicateCaching, RequestNotCachable, ResponseNotCachable
+from .exceptions import (
+    DuplicateCaching,
+    MissingCaching,
+    RequestNotCachable,
+    ResponseNotCachable,
+)
 from .rules import Rule
-from .utils.cache import get_from_cache, patch_cache_control, store_in_cache
+from .utils.cache import (
+    INVALIDATING_METHODS,
+    delete_from_cache,
+    get_from_cache,
+    patch_cache_control,
+    store_in_cache,
+)
 from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
-from .utils.misc import kvformat
+from .utils.misc import eager_annotation, kvformat
 
 if typing.TYPE_CHECKING:
     from collections.abc import Sequence
 
     from aiocache.base import BaseCache as Cache
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+
+SCOPE_NAME = "__asgi_caches__"
 
 logger = get_logger(__name__)
 
@@ -57,7 +71,7 @@ class CacheMiddleware:
             await self.app(scope, receive, send)
             return
 
-        if "__asgi_caches__" in scope:
+        if SCOPE_NAME in scope:
             raise DuplicateCaching(
                 "Another `CacheMiddleware` was detected in the middleware stack.\n"
                 "HINT: this exception probably occurred because:\n"
@@ -67,7 +81,7 @@ class CacheMiddleware:
                 "the application is already wrapped around a `CacheMiddleware`."
             )
 
-        scope["__asgi_caches__"] = True
+        scope[SCOPE_NAME] = self
 
         responder = CacheResponder(
             self.app,
@@ -75,6 +89,41 @@ class CacheMiddleware:
             rules=self.rules,
         )
         await responder(scope, receive, send)
+
+
+class BaseCacheMiddlewareHelper:
+    """Base class for helpers that need access to the `CacheMiddleware` instance."""
+
+    @eager_annotation
+    def __init__(self, request: Request) -> None:
+        """Initialize the helper with the request and the cache middleware instance.
+
+        Args:
+            request: The request object.
+
+        Raises:
+            MissingCaching: If the cache middleware instance is not found in the scope
+                            or if the cache middleware instance is not an instance of
+                            `CacheMiddleware`.
+
+        """
+        self.request = request
+
+        if SCOPE_NAME not in request.scope:  # pragma: no cover
+            raise MissingCaching(
+                "No CacheMiddleware instance found in the ASGI scope. Did you forget "
+                "to wrap the ASGI application with `CacheMiddleware`?"
+            )
+
+        middleware = request.scope[SCOPE_NAME]
+        if not isinstance(middleware, CacheMiddleware):  # pragma: no cover
+            raise MissingCaching(
+                f"A scope variable named {SCOPE_NAME!r} was found, but it does not "
+                "contain a `CacheMiddleware` instance. It is likely that an "
+                "incompatible middleware was added to the middleware stack."
+            )
+
+        self.middleware = middleware
 
 
 class CacheResponder:
@@ -101,7 +150,8 @@ class CacheResponder:
         try:
             response = await get_from_cache(request, cache=self.cache, rules=self.rules)
         except RequestNotCachable:
-            pass
+            if request.method in INVALIDATING_METHODS:
+                send = partial(self.send_then_invalidate, send=send)
         else:
             if response is not None:
                 logger.debug("cache_lookup %s", "HIT", extra=HIT_EXTRA)
@@ -149,6 +199,19 @@ class CacheResponder:
             self.initial_message["headers"] = list(response.raw_headers)
 
         await send(self.initial_message)
+        await send(message)
+
+    async def send_then_invalidate(self, message: Message, *, send: Send) -> None:
+        # listen for the response start message and invalidate the cache
+        # if the request method is POST, PUT, PATCH, DELETE, and if the
+        # response status code is 2xx or 3xx
+        assert self.request is not None
+        if message["type"] == "http.response.start" and 200 <= message["status"] < 400:
+            await delete_from_cache(
+                self.request.url,
+                vary=self.request.headers,
+                cache=self.cache,
+            )
         await send(message)
 
 

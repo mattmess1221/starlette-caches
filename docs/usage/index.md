@@ -168,6 +168,32 @@ class DateTime(HTTPEndpoint):
         return JSONResponse({"time": datetime.now().utcformat()})
 ```
 
+### Cache Invalidation
+
+When you follow RESTful principles, you'll want to invalidate the cache when a resource is updated. This is particularly important for resources that are updated frequently, as clients may cache them for a long time.
+
+If you define an endpoint that supports both `GET` and non-`GET` methods (`POST`, `PUT`, `PATCH`, `DELETE`), the cache will automatically be invalidated when a non-`GET` request is made to the endpoint. No additional configuration is required.
+
+If you need to invalidate the cache in other cases, you can use the [`CacheHelper.invalidate_cache_for`][asgi_caches.helpers.CacheHelper.invalidate_cache_for] method. It accepts a starlette `URL` or the name of a route as accepted by [`url_for`][starlette.requests.Request.url_for]. An optional named argument `headers` can be passed to specify the headers that should be used to vary the cache as specified by the cached `Vary` response header.
+
+[starlette.requests.Request.url_for]: https://www.starlette.io/routing/#reverse-url-lookups
+
+=== "FastAPI"
+
+    FastAPI supports dependency injection, which makes it easy to get the `CacheHelper` instance in your endpoint:
+
+    ```python linenums="1" hl_lines="12-16"
+    --8<-- "docs/examples/usage/index/cache_invalidation_fastapi.py"
+    ```
+
+=== "Starlette"
+
+    Starlette does not support dependency injection, so you'll need to instantiate the `CacheHelper` manually from the `request` object:
+
+    ```python linenums="1" hl_lines="11-14 23"
+    --8<-- "docs/examples/usage/index/cache_invalidation_starlette.py"
+    ```
+
 ## Order of middleware
 
 The cache middleware uses the `Vary` header present in responses to know by which request header it should vary the cache. For example, if a response contains `Vary: Accept-Encoding`, a request containing `Accept-Encoding: gzip` won't result in using the same cache entry than a request containing `Accept-Encoding: identity`.
