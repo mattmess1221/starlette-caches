@@ -3,11 +3,16 @@ from __future__ import annotations
 import typing
 from functools import partial
 
-from starlette.datastructures import URL, Headers, MutableHeaders
+from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
 
-from .exceptions import DuplicateCaching, RequestNotCachable, ResponseNotCachable
+from .exceptions import (
+    DuplicateCaching,
+    MissingCaching,
+    RequestNotCachable,
+    ResponseNotCachable,
+)
 from .rules import Rule
 from .utils.cache import (
     INVALIDATING_METHODS,
@@ -17,13 +22,16 @@ from .utils.cache import (
     store_in_cache,
 )
 from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
-from .utils.misc import kvformat
+from .utils.misc import eager_annotation, kvformat
 
 if typing.TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Sequence
 
     from aiocache.base import BaseCache as Cache
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+
+SCOPE_NAME = "__asgi_caches__"
 
 logger = get_logger(__name__)
 
@@ -63,7 +71,7 @@ class CacheMiddleware:
             await self.app(scope, receive, send)
             return
 
-        if "__asgi_caches__" in scope:
+        if SCOPE_NAME in scope:
             raise DuplicateCaching(
                 "Another `CacheMiddleware` was detected in the middleware stack.\n"
                 "HINT: this exception probably occurred because:\n"
@@ -73,7 +81,7 @@ class CacheMiddleware:
                 "the application is already wrapped around a `CacheMiddleware`."
             )
 
-        scope["__asgi_caches__"] = self
+        scope[SCOPE_NAME] = self
 
         responder = CacheResponder(
             self.app,
@@ -81,6 +89,41 @@ class CacheMiddleware:
             rules=self.rules,
         )
         await responder(scope, receive, send)
+
+
+class BaseCacheMiddlewareHelper:
+    """Base class for helpers that need access to the `CacheMiddleware` instance."""
+
+    @eager_annotation
+    def __init__(self, request: Request) -> None:
+        """Initialize the helper with the request and the cache middleware instance.
+
+        Args:
+            request: The request object.
+
+        Raises:
+            MissingCaching: If the cache middleware instance is not found in the scope
+                            or if the cache middleware instance is not an instance of
+                            `CacheMiddleware`.
+
+        """
+        self.request = request
+
+        if SCOPE_NAME not in request.scope:
+            raise MissingCaching(
+                "No CacheMiddleware instance found in the ASGI scope. Did you forget "
+                "to wrap the ASGI application with `CacheMiddleware`?"
+            )
+
+        middleware = request.scope[SCOPE_NAME]
+        if not isinstance(middleware, CacheMiddleware):
+            raise MissingCaching(
+                f"A scope variable named {SCOPE_NAME!r} was found, but it does not "
+                "contain a `CacheMiddleware` instance. It is likely that an "
+                "incompatible middleware was added to the middleware stack."
+            )
+
+        self.middleware = middleware
 
 
 class CacheResponder:
@@ -170,42 +213,6 @@ class CacheResponder:
                 cache=self.cache,
             )
         await send(message)
-
-
-class CacheInvalidator:
-    def __init__(self, request: Request) -> None:
-        self.request = request
-
-        assert "__asgi_caches__" in request.scope, (
-            "No CacheMiddleware instance found in the ASGI scope. Did you forget to "
-            "wrap the ASGI application with `CacheMiddleware`?"
-        )
-        assert isinstance(request.scope["__asgi_caches__"], CacheMiddleware)
-        self.middleware = request.scope["__asgi_caches__"]
-
-    async def invalidate_cache_for(
-        self,
-        url: str | URL,
-        *,
-        headers: Headers | Mapping[str, str] | None = None,
-    ) -> None:
-        """Invalidate the cache for a given named route or full url.
-
-        If the vary is not provided, only responses without a Vary header will be
-        invalidated.
-
-        Args:
-            url: The URL to invalidate or name of a starlette route.
-            headers: The headers used to generate the cache key.
-
-        """
-        if not isinstance(url, URL):
-            url = self.request.url_for(url)
-
-        if not isinstance(headers, Headers):
-            headers = Headers(headers)
-
-        await delete_from_cache(url, vary=headers, cache=self.middleware.cache)
 
 
 class CacheControlMiddleware:

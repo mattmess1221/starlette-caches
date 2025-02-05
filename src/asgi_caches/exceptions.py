@@ -24,3 +24,7 @@ class ResponseNotCachable(ASGICachesException):
 
 class DuplicateCaching(ASGICachesException):
     """Raised when multiple cache middleware were detected."""
+
+
+class MissingCaching(ASGICachesException):
+    """Raised when no cache middleware was detected."""
