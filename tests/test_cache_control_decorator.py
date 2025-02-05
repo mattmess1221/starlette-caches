@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import httpx
 import pytest
+from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse, Response
+from starlette.routing import Route
+from starlette.testclient import TestClient
 
 from asgi_caches.decorators import cache_control
 
@@ -20,12 +22,10 @@ async def test_cache_control_decorator() -> None:
         response = PlainTextResponse("Hello, world!")
         await response(scope, receive, send)
 
-    client = httpx.AsyncClient(
-        transport=httpx.ASGITransport(app), base_url="http://testserver"
-    )
+    app = Starlette(routes=[Route("/", app)])
 
-    async with client:
-        r = await client.get("/")
+    with TestClient(app) as client:
+        r = client.get("/")
         assert r.status_code == 200
         assert r.text == "Hello, world!"
         assert r.headers["Cache-Control"] == "stale-if-error=60, must-revalidate"
