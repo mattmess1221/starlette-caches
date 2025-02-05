@@ -109,14 +109,14 @@ class BaseCacheMiddlewareHelper:
         """
         self.request = request
 
-        if SCOPE_NAME not in request.scope:
+        if SCOPE_NAME not in request.scope:  # pragma: no cover
             raise MissingCaching(
                 "No CacheMiddleware instance found in the ASGI scope. Did you forget "
                 "to wrap the ASGI application with `CacheMiddleware`?"
             )
 
         middleware = request.scope[SCOPE_NAME]
-        if not isinstance(middleware, CacheMiddleware):
+        if not isinstance(middleware, CacheMiddleware):  # pragma: no cover
             raise MissingCaching(
                 f"A scope variable named {SCOPE_NAME!r} was found, but it does not "
                 "contain a `CacheMiddleware` instance. It is likely that an "
