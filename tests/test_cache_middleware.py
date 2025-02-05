@@ -309,10 +309,6 @@ def test_streaming_response() -> None:
         assert "X-Cache" not in r.headers
 
 
-@pytest.mark.skip(
-    "Starlette GZipMiddleware doesn't add the Vary header when not compressing\n"
-    "See https://github.com/encode/starlette/discussions/2863"
-)
 def test_vary() -> None:
     """
     Sending different values for request headers registered as varying should
@@ -333,7 +329,7 @@ def test_vary() -> None:
         assert r.headers["X-Cache"] == "miss"
         assert r.status_code == 200
         assert r.text == "Hello, world!"
-        assert r.headers["vary"].lower() == "accept-encoding"
+        assert r.headers.get("vary", "").lower() == "accept-encoding"
         assert r.headers.get("content-encoding") == "gzip"
         assert "Expires" in r.headers
         assert "Cache-Control" in r.headers
@@ -344,6 +340,7 @@ def test_vary() -> None:
         assert r1.headers["X-Cache"] == "miss"
         assert r1.status_code == 200
         assert r1.text == "Hello, world!"
+        assert r1.headers.get("vary", "").lower() == "accept-encoding"
         assert "Expires" in r1.headers
         assert "Cache-Control" in r1.headers
 
@@ -353,6 +350,7 @@ def test_vary() -> None:
         assert r2.headers["X-Cache"] == "hit"
         assert r2.status_code == 200
         assert r2.text == "Hello, world!"
+        assert r.headers.get("vary", "").lower() == "accept-encoding"
         assert r2.headers.get("Content-Encoding") == "gzip"
         assert "Expires" in r2.headers
         assert "Cache-Control" in r2.headers
