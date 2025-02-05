@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from functools import partial
 
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
@@ -19,14 +20,6 @@ if typing.TYPE_CHECKING:
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = get_logger(__name__)
-
-
-async def unattached_receive() -> Message:
-    raise RuntimeError("receive awaitable not set")  # pragma: no cover
-
-
-async def unattached_send(message: Message) -> None:
-    raise RuntimeError("send awaitable not set")  # pragma: no cover
 
 
 class CacheMiddleware:
@@ -96,7 +89,6 @@ class CacheResponder:
         self.cache = cache
         self.rules = rules
 
-        self.send: Send = unattached_send
         self.initial_message: Message = {}
         self.is_response_cachable = True
         self.request: Request | None = None
@@ -104,25 +96,25 @@ class CacheResponder:
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
 
-        request = Request(scope)
+        self.request = request = Request(scope)
 
         try:
             response = await get_from_cache(request, cache=self.cache, rules=self.rules)
         except RequestNotCachable:
-            await self.app(scope, receive, send)
+            pass
         else:
             if response is not None:
                 logger.debug("cache_lookup %s", "HIT", extra=HIT_EXTRA)
                 await response(scope, receive, send)
                 return
+            send = partial(self.send_with_caching, send=send)
             logger.debug("cache_lookup %s", "MISS", extra=MISS_EXTRA)
-            self.request = request
-            self.send = send
-            await self.app(scope, receive, self.send_with_caching)
 
-    async def send_with_caching(self, message: Message) -> None:
+        await self.app(scope, receive, send)
+
+    async def send_with_caching(self, message: Message, *, send: Send) -> None:
         if not self.is_response_cachable:
-            await self.send(message)
+            await send(message)
             return
 
         if message["type"] == "http.response.start":
@@ -135,8 +127,8 @@ class CacheResponder:
         if message.get("more_body", False):
             logger.trace("response_not_cachable reason=is_streaming")
             self.is_response_cachable = False
-            await self.send(self.initial_message)
-            await self.send(message)
+            await send(self.initial_message)
+            await send(message)
             return
 
         assert self.request is not None
@@ -156,8 +148,8 @@ class CacheResponder:
             # Apply any headers added or modified by 'store_in_cache()'.
             self.initial_message["headers"] = list(response.raw_headers)
 
-        await self.send(self.initial_message)
-        await self.send(message)
+        await send(self.initial_message)
+        await send(message)
 
 
 class CacheControlMiddleware:
@@ -191,18 +183,17 @@ class CacheControlResponder:
     def __init__(self, app: ASGIApp, **kwargs: typing.Any) -> None:
         self.app = app
         self.kwargs = kwargs
-        self.send: Send = unattached_send
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
-        self.send = send
-        await self.app(scope, receive, self.send_with_caching)
+        send = partial(self.send_with_caching, send=send)
+        await self.app(scope, receive, send)
 
-    async def send_with_caching(self, message: Message) -> None:
+    async def send_with_caching(self, message: Message, *, send: Send) -> None:
         if message["type"] == "http.response.start":
             logger.trace(f"patch_cache_control {kvformat(**self.kwargs)}")
             headers = MutableHeaders(raw=list(message["headers"]))
             patch_cache_control(headers, **self.kwargs)
             message["headers"] = headers.raw
 
-        await self.send(message)
+        await send(message)
