@@ -92,6 +92,11 @@ async def store_in_cache(
 
     logger.debug(f"store_in_cache max_age={max_age!r}")
 
+    # Store the cached response as a hit. The current request will have it
+    # set to miss before returning the response to the client. Future requests
+    # will load from the cache, and have it set to hit.
+    response.headers["X-Cache"] = "hit"
+
     cache_headers = get_cache_response_headers(response, max_age=max_age)
     logger.trace(f"patch_response_headers headers={cache_headers!r}")
     response.headers.update(cache_headers)
@@ -107,6 +112,10 @@ async def store_in_cache(
         kwargs["ttl"] = ttl
 
     await cache.set(key=cache_key, value=serialized_response, **kwargs)
+
+    # Set X-Cache header to miss for the current request. The next request will
+    # load from the cache and have the X-Cache header set to hit.
+    response.headers["X-Cache"] = "miss"
 
 
 async def get_from_cache(

@@ -12,7 +12,6 @@ from starlette.routing import Route
 
 from asgi_caches.decorators import cached
 from asgi_caches.middleware import CacheMiddleware
-from tests.utils import CacheSpy
 
 if TYPE_CHECKING:
     from starlette.requests import Request
@@ -28,27 +27,24 @@ async def test_decorator_raw_asgi() -> None:
         response = PlainTextResponse("Hello, world!")
         await response(scope, receive, send)
 
-    spy = app.app = CacheSpy(app.app)
     client = httpx.AsyncClient(
         transport=httpx.ASGITransport(app), base_url="http://testserver"
     )
 
     async with cache, client:
-        assert spy.misses == 0
+        r = await client.get("/")
+        assert r.status_code == 200
+        assert r.text == "Hello, world!"
+        assert "Expires" in r.headers
+        assert "Cache-Control" in r.headers
+        assert r.headers["X-Cache"] == "miss"
 
         r = await client.get("/")
         assert r.status_code == 200
         assert r.text == "Hello, world!"
         assert "Expires" in r.headers
         assert "Cache-Control" in r.headers
-        assert spy.misses == 1
-
-        r = await client.get("/")
-        assert r.status_code == 200
-        assert r.text == "Hello, world!"
-        assert "Expires" in r.headers
-        assert "Cache-Control" in r.headers
-        assert spy.misses == 1
+        assert r.headers["X-Cache"] == "hit"
 
 
 @pytest.mark.asyncio
@@ -65,46 +61,40 @@ async def test_decorator_starlette_endpoint() -> None:
             return PlainTextResponse("Hello, users!")
 
     assert isinstance(CachedHome, CacheMiddleware)
-    spy = CachedHome.app = CacheSpy(CachedHome.app)
-    users_spy = CacheSpy(UncachedUsers)
 
-    app = Starlette(routes=[Route("/", CachedHome), Route("/users", users_spy)])
+    app = Starlette(routes=[Route("/", CachedHome), Route("/users", UncachedUsers)])
     client = httpx.AsyncClient(
         transport=httpx.ASGITransport(app), base_url="http://testserver"
     )
 
     async with cache, client:
-        assert spy.misses == 0
+        r = await client.get("/")
+        assert r.status_code == 200
+        assert r.text == "Hello, world!"
+        assert "Expires" in r.headers
+        assert "Cache-Control" in r.headers
+        assert r.headers["X-Cache"] == "miss"
 
         r = await client.get("/")
         assert r.status_code == 200
         assert r.text == "Hello, world!"
         assert "Expires" in r.headers
         assert "Cache-Control" in r.headers
-        assert spy.misses == 1
-
-        r = await client.get("/")
-        assert r.status_code == 200
-        assert r.text == "Hello, world!"
-        assert "Expires" in r.headers
-        assert "Cache-Control" in r.headers
-        assert spy.misses == 1
-
-        assert users_spy.misses == 0
+        assert r.headers["X-Cache"] == "hit"
 
         r = await client.get("/users")
         assert r.status_code == 200
         assert r.text == "Hello, users!"
         assert "Expires" not in r.headers
         assert "Cache-Control" not in r.headers
-        assert users_spy.misses == 1
+        assert "X-Cache" not in r.headers
 
         r = await client.get("/users")
         assert r.status_code == 200
         assert r.text == "Hello, users!"
         assert "Expires" not in r.headers
         assert "Cache-Control" not in r.headers
-        assert users_spy.misses == 2
+        assert "X-Cache" not in r.headers
 
 
 @pytest.mark.asyncio
