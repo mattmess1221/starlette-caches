@@ -34,8 +34,8 @@ class CacheHelper(BaseCacheMiddlewareHelper):
     ) -> None:
         """Invalidate the cache for a given named route or full url.
 
-        `headers` will be used to generate the cache key based on. The `Vary` header
-        will determine which headers will be used.
+        `headers` will be used to generate the cache key. The `Vary` header from the
+        cached response will determine which headers will be used.
 
         Args:
             url: The URL to invalidate or name of a starlette route.
