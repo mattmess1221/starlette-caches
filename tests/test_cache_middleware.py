@@ -348,7 +348,6 @@ async def test_vary() -> None:
         assert "Cache-Control" in r.headers
 
 
-
 @pytest.mark.asyncio
 async def test_cookies_in_response_and_cookieless_request() -> None:
     """
