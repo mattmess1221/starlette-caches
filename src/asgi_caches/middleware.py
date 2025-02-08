@@ -215,6 +215,22 @@ class CacheResponder:
         await send(message)
 
 
+class CacheDirectives(typing.TypedDict, total=False):
+    max_age: int
+    s_maxage: int
+    no_cache: bool
+    no_store: bool
+    no_transform: bool
+    must_revalidate: bool
+    proxy_revalidate: bool
+    must_understand: bool
+    private: bool
+    public: bool
+    immutable: bool
+    stale_while_revalidate: int
+    stale_if_error: int
+
+
 class CacheControlMiddleware:
     """Middleware which handles Cache-Control headers for upstream cache proxies.
 
@@ -230,7 +246,7 @@ class CacheControlMiddleware:
 
     """
 
-    def __init__(self, app: ASGIApp, **kwargs: str | bool) -> None:
+    def __init__(self, app: ASGIApp, **kwargs: typing.Unpack[CacheDirectives]) -> None:
         self.app = app
         self.kwargs = kwargs
 
@@ -243,7 +259,7 @@ class CacheControlMiddleware:
 
 
 class CacheControlResponder:
-    def __init__(self, app: ASGIApp, **kwargs: typing.Any) -> None:
+    def __init__(self, app: ASGIApp, **kwargs: typing.Unpack[CacheDirectives]) -> None:
         self.app = app
         self.kwargs = kwargs
 
