@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 def test_decorator_raw_asgi() -> None:
     cache = Cache(ttl=2 * 60)
 
-    @cached(cache)
+    @cached(cache=cache)
     async def mount(scope: Scope, receive: Receive, send: Send) -> None:
         response = PlainTextResponse("Hello, world!")
         await response(scope, receive, send)
@@ -48,7 +48,7 @@ def test_decorator_raw_asgi() -> None:
 def test_decorator_starlette_endpoint() -> None:
     cache = Cache(ttl=2 * 60)
 
-    @cached(cache)
+    @cached(cache=cache)
     class CachedHome(HTTPEndpoint):
         async def get(self, request: Request) -> Response:
             return PlainTextResponse("Hello, world!")
@@ -96,5 +96,5 @@ def test_decorate_starlette_view() -> None:
 
     with pytest.raises(ValueError, match="does not seem to be an ASGI3 callable"):
 
-        @cached(cache)
+        @cached(cache)  # type: ignore
         async def home(request: Request) -> Response: ...  # pragma: no cover
