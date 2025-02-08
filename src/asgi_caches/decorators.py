@@ -1,42 +1,44 @@
 from __future__ import annotations
 
 import functools
+import sys
 import typing
 
 from .middleware import CacheControlMiddleware, CacheMiddleware
 from .utils.misc import is_asgi3
 
+if sys.version_info >= (3, 10):  # pragma: no cover
+    from typing import ParamSpec
+else:  # pragma: no cover
+    from typing_extensions import ParamSpec
+
 if typing.TYPE_CHECKING:
-    from aiocache import BaseCache as Cache
     from starlette.types import ASGIApp
 
 
-def cached(cache: Cache) -> typing.Callable:
-    """Wrap an ASGI endpoint with [asgi_caches.middleware.CacheMiddleware][].
-
-    This decorator provides the same behavior than `CacheMiddleware`,
-    but at an endpoint level.
-
-    Raises 'ValueError' if the wrapped callable isn't an ASGI application.
-    """
-
-    def wrap(app: ASGIApp) -> ASGIApp:
-        _validate_asgi3(app)
-        middleware = CacheMiddleware(app, cache=cache)
-        return _wrap_in_middleware(app, middleware)
-
-    return wrap
+_P = ParamSpec("_P")
 
 
-def cache_control(**kwargs: typing.Any) -> typing.Callable:
-    """Wrap an ASGI endpoint with [asgi_caches.middleware.CacheControlMiddleware][]."""
+class _MiddlewareFactory(typing.Protocol[_P]):
+    def __call__(
+        self, app: ASGIApp, *args: _P.args, **kwargs: _P.kwargs
+    ) -> ASGIApp: ...
 
-    def wrap(app: ASGIApp) -> ASGIApp:
-        _validate_asgi3(app)
-        middleware = CacheControlMiddleware(app, **kwargs)
-        return _wrap_in_middleware(app, middleware)
 
-    return wrap
+def _middleware_to_decorator(
+    cls: _MiddlewareFactory[_P],
+) -> typing.Callable[_P, typing.Callable[[ASGIApp], ASGIApp]]:
+    def decorator(
+        *args: _P.args, **kwargs: _P.kwargs
+    ) -> typing.Callable[[ASGIApp], ASGIApp]:
+        def wrap(app: ASGIApp) -> ASGIApp:
+            _validate_asgi3(app)
+            middleware = cls(app, *args, **kwargs)
+            return _wrap_in_middleware(app, middleware)
+
+        return wrap
+
+    return decorator
 
 
 def _wrap_in_middleware(app: ASGIApp, middleware: ASGIApp) -> ASGIApp:
@@ -53,3 +55,23 @@ def _validate_asgi3(app: ASGIApp) -> None:
             "Did you try to apply this decorator to a framework-specific view "
             "function? (It can only be applied to ASGI callables.)"
         )
+
+
+cached = _middleware_to_decorator(CacheMiddleware)
+"""Wrap an ASGI endpoint with [asgi_caches.middleware.CacheMiddleware][].
+
+This decorator provides the same behavior as `CacheMiddleware`,
+but at an endpoint level.
+
+Raises 'ValueError' if the wrapped callable isn't an ASGI application.
+"""
+
+
+cache_control = _middleware_to_decorator(CacheControlMiddleware)
+"""Wrap an ASGI endpoint with [asgi_caches.middleware.CacheControlMiddleware][].
+
+This decorator provides the same behavior as `CacheControlMiddleware`,
+but at an endpoint level.
+
+Raises 'ValueError' if the wrapped callable isn't an ASGI application.
+"""
