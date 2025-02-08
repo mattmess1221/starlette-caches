@@ -35,5 +35,5 @@ async def test_cache_control_decorator() -> None:
 async def test_decorate_starlette_view() -> None:
     with pytest.raises(ValueError, match="does not seem to be an ASGI3 callable"):
 
-        @cache_control(stale_if_error=60)
+        @cache_control(stale_if_error=60)  # type: ignore
         async def home(request: Request) -> Response: ...  # pragma: no cover
