@@ -233,12 +233,14 @@ async def learn_cache_key(
     url = request.url
     varying_headers_cache_key = generate_varying_headers_cache_key(url, cache=cache)
 
+    cached_vary_headers = set(await cache.get(key=varying_headers_cache_key) or ())
+    response_vary_headers = {
+        header.lower() for header in parse_http_list(response.headers.get("Vary", ""))
+    }
+
     # workaround for when a route doesn't always add a Vary header
     # Caveat: only effective when a varied requested is sent first
-    varying_headers = sorted(
-        set(parse_http_list(response.headers.get("Vary", "")))
-        | set(await cache.get(key=varying_headers_cache_key) or ())
-    )
+    varying_headers = sorted(response_vary_headers | cached_vary_headers)
     if varying_headers:
         response.headers["Vary"] = ", ".join(varying_headers)
 
