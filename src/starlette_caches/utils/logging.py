@@ -26,13 +26,13 @@ class Logger(logging.Logger):
 
 
 class LoggerFactory:
-    log_level_env_var = "ASGI_CACHES_LOG_LEVEL"
+    log_level_env_var = "STARLETTE_CACHES_LOG_LEVEL"
     log_line_format = "%(levelname)s [%(asctime)s] %(name)s - %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S"
 
     def _configure_package_logger(self, log_level: str) -> None:
         assert log_level in ("DEBUG", "TRACE")
-        logger = logging.getLogger("asgi_caches")
+        logger = logging.getLogger("starlette_caches")
         logger.setLevel(logging.DEBUG if log_level == "DEBUG" else TRACE_LOG_LEVEL)
         handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(

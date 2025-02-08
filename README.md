@@ -1,12 +1,12 @@
-# asgi-caches
+# starlette-caches
 
-[![Build Status](https://github.com/mattmess1221/asgi-caches/actions/workflows/ci.yml/badge.svg)](https://github.com/mattmess1221/asgi-caches/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/mattmess1221/asgi-caches/branch/main/graph/badge.svg)](https://codecov.io/gh/mattmess1221/asgi-caches)
-[![Package version](https://badge.fury.io/py/asgi-caches.svg)](https://pypi.org/project/asgi-caches)
+[![Build Status](https://github.com/mattmess1221/starlette-caches/actions/workflows/ci.yml/badge.svg)](https://github.com/mattmess1221/starlette-caches/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/mattmess1221/starlette-caches/branch/main/graph/badge.svg)](https://codecov.io/gh/mattmess1221/starlette-caches)
+[![Package version](https://badge.fury.io/py/starlette-caches.svg)](https://pypi.org/project/starlette-caches)
 
-`asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`aiocache`](https://aiocache.aio-libs.org/en/latest/), and inspired by Django's cache framework.
+`starlette-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`aiocache`](https://aiocache.aio-libs.org/en/latest/), and inspired by Django's cache framework.
 
-Documentation is available at: https://mattmess1221.github.io/asgi-caches/
+Documentation is available at: https://mattmess1221.github.io/starlette-caches/
 
 **Note**: this project is in an "alpha" status. Several features still need to be implemented, and you should expect breaking API changes across minor versions.
 
@@ -22,20 +22,20 @@ Documentation is available at: https://mattmess1221.github.io/asgi-caches/
 ## Installation
 
 ```bash
-pip install "asgi-caches"
+pip install "starlette-caches"
 ```
 
 To install with redis or memcached support, use:
 
 ```bash
-pip install "asgi-caches[redis,memcached]"
+pip install "starlette-caches[redis,memcached]"
 ```
 
 ## Quickstart
 
 ```python
 from aiocache import Cache
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.middleware import CacheMiddleware
 
 cache = Cache(ttl=2 * 60)
 
@@ -54,7 +54,7 @@ This example:
 - Sets up an application (in this case, a raw-ASGI 'Hello, world!' app).
 - Applies caching on the entire application.
 
-To learn more, head to the [documentation](https://mattmess1221.github.io/asgi-caches/).
+To learn more, head to the [documentation](https://mattmess1221.github.io/starlette-caches/).
 
 ## Credits
 

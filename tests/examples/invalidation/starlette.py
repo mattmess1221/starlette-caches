@@ -7,8 +7,8 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.routing import Route
 from starlette.status import HTTP_204_NO_CONTENT
 
-from asgi_caches.helpers import CacheHelper
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.helpers import CacheHelper
+from starlette_caches.middleware import CacheMiddleware
 
 
 class MyRoute(HTTPEndpoint):

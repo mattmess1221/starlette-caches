@@ -1,3 +1,3 @@
 # Reference
 
-::: asgi_caches
+::: starlette_caches

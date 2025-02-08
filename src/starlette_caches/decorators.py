@@ -58,7 +58,7 @@ def _validate_asgi3(app: ASGIApp) -> None:
 
 
 cached = _middleware_to_decorator(CacheMiddleware)
-"""Wrap an ASGI endpoint with [asgi_caches.middleware.CacheMiddleware][].
+"""Wrap an ASGI endpoint with [starlette_caches.middleware.CacheMiddleware][].
 
 This decorator provides the same behavior as `CacheMiddleware`,
 but at an endpoint level.
@@ -68,7 +68,7 @@ Raises 'ValueError' if the wrapped callable isn't an ASGI application.
 
 
 cache_control = _middleware_to_decorator(CacheControlMiddleware)
-"""Wrap an ASGI endpoint with [asgi_caches.middleware.CacheControlMiddleware][].
+"""Wrap an ASGI endpoint with [starlette_caches.middleware.CacheControlMiddleware][].
 
 This decorator provides the same behavior as `CacheControlMiddleware`,
 but at an endpoint level.

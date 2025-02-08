@@ -1,6 +1,6 @@
 # Introduction
 
-`asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`aiocache`](https://aiocache.aio-libs.org/en/latest/), and inspired by Django's cache framework.
+`starlette-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`aiocache`](https://aiocache.aio-libs.org/en/latest/), and inspired by Django's cache framework.
 
 !!! warning
     This project is in an "alpha" status. Several features still need to be implemented, and you should expect breaking API changes across minor versions.
@@ -17,14 +17,14 @@
 ## Installation
 
 ```bash
-pip install "asgi-caches==0.*"
+pip install "starlette-caches==0.*"
 ```
 
 ## Quickstart
 
 ```python
 from aiocache import Cache
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.middleware import CacheMiddleware
 
 cache = Cache()
 

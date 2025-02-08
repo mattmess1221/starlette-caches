@@ -4,8 +4,8 @@ from aiocache import Cache
 from fastapi import Depends, FastAPI, status
 from fastapi.responses import PlainTextResponse
 
-from asgi_caches.helpers import CacheHelper
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.helpers import CacheHelper
+from starlette_caches.middleware import CacheMiddleware
 
 app = FastAPI(default_response_class=PlainTextResponse)
 app.add_middleware(CacheMiddleware, cache=Cache())

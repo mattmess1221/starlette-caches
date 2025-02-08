@@ -2,11 +2,11 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 
-class ASGICachesException(Exception):
+class StarletteCachesException(Exception):
     pass
 
 
-class RequestNotCachable(ASGICachesException):
+class RequestNotCachable(StarletteCachesException):
     """Raised when a request cannot be cached."""
 
     def __init__(self, request: Request) -> None:
@@ -14,7 +14,7 @@ class RequestNotCachable(ASGICachesException):
         self.request = request
 
 
-class ResponseNotCachable(ASGICachesException):
+class ResponseNotCachable(StarletteCachesException):
     """Raised when a response cannot be cached."""
 
     def __init__(self, response: Response) -> None:
@@ -22,9 +22,9 @@ class ResponseNotCachable(ASGICachesException):
         self.response = response
 
 
-class DuplicateCaching(ASGICachesException):
+class DuplicateCaching(StarletteCachesException):
     """Raised when multiple cache middleware were detected."""
 
 
-class MissingCaching(ASGICachesException):
+class MissingCaching(StarletteCachesException):
     """Raised when no cache middleware was detected."""

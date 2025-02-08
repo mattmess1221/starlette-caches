@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
-site_name: asgi-caches
+site_name: starlette-caches
 site_description: Server-side HTTP caching for ASGI applications, inspired by Django's cache framework
 
 theme:
@@ -9,8 +9,8 @@ theme:
   features:
     - content.tabs.link
 
-repo_name: mattmess1221/asgi-caches
-repo_url: https://github.com/mattmess1221/asgi-caches
+repo_name: mattmess1221/starlette-caches
+repo_url: https://github.com/mattmess1221/starlette-caches
 edit_uri: ""
 
 watch:
@@ -62,6 +62,6 @@ markdown_extensions:
       normalize_issue_symbols: true
       repo_url_shorthand: true
       user: mattmess1221
-      repo: asgi-caches
+      repo: starlette-caches
   - codehilite:
       guess_lang: false

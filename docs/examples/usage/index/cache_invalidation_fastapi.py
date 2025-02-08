@@ -1,8 +1,8 @@
 from typing import Annotated, Any
 
 from aiocache import Cache
-from asgi_caches.helpers import CacheHelper
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.helpers import CacheHelper
+from starlette_caches.middleware import CacheMiddleware
 from fastapi import Depends, FastAPI
 
 app = FastAPI()

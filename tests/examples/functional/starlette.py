@@ -8,8 +8,8 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.routing import Mount, Route
 
-from asgi_caches.decorators import cache_control
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.decorators import cache_control
+from starlette_caches.middleware import CacheMiddleware
 
 from .resources import cache, special_cache
 

@@ -9,7 +9,7 @@ import typing
 import httpx
 from starlette.responses import Response
 
-import asgi_caches.utils.logging
+import starlette_caches.utils.logging
 
 
 class ComparableStarletteResponse:
@@ -46,17 +46,17 @@ class ComparableHTTPXResponse:
 
 @contextlib.contextmanager
 def override_log_level(log_level: str) -> typing.Iterator[None]:
-    os.environ["ASGI_CACHES_LOG_LEVEL"] = log_level
+    os.environ["STARLETTE_CACHES_LOG_LEVEL"] = log_level
 
     # Force a reload on the logging handlers
-    asgi_caches.utils.logging._logger_factory._initialized = False
-    asgi_caches.utils.logging.get_logger("asgi_caches")
+    starlette_caches.utils.logging._logger_factory._initialized = False
+    starlette_caches.utils.logging.get_logger("starlette_caches")
 
     try:
         yield
     finally:
         # Reset the logger so we don't have verbose output in all unit tests
-        logging.getLogger("asgi_caches").handlers = []
+        logging.getLogger("starlette_caches").handlers = []
 
 
 @contextlib.contextmanager

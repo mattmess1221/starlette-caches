@@ -1,6 +1,6 @@
 # Caching Rules
 
-In [`CacheMiddleware`][asgi_caches.middleware.CacheMiddleware], the `rules` argument is used to customize which endpoints get cached. It is a sequence of [`Rule`][asgi_caches.rules.Rule] objects defining a request path, a response status code, and the cache TTL.
+In [`CacheMiddleware`][starlette_caches.middleware.CacheMiddleware], the `rules` argument is used to customize which endpoints get cached. It is a sequence of [`Rule`][starlette_caches.rules.Rule] objects defining a request path, a response status code, and the cache TTL.
 
 Rules will be processed in order, using the first matching rule. If no rule matches, the response will not be cached.
 

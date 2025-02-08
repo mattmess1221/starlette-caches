@@ -10,7 +10,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Mount
 from starlette.testclient import TestClient
 
-from asgi_caches.middleware import CacheControlMiddleware
+from starlette_caches.middleware import CacheControlMiddleware
 
 
 @pytest.mark.parametrize(

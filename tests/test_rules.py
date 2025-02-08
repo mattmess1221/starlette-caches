@@ -7,7 +7,7 @@ from starlette.datastructures import URL
 from starlette.requests import Request
 from starlette.responses import Response
 
-from asgi_caches.rules import (
+from starlette_caches.rules import (
     Rule,
     get_rule_matching_request,
     get_rule_matching_response,

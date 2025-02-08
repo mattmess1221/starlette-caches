@@ -16,9 +16,9 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.responses import PlainTextResponse, Response, StreamingResponse
 from starlette.routing import Route
 
-from asgi_caches.exceptions import DuplicateCaching
-from asgi_caches.middleware import CacheMiddleware
-from asgi_caches.rules import Rule
+from starlette_caches.exceptions import DuplicateCaching
+from starlette_caches.middleware import CacheMiddleware
+from starlette_caches.rules import Rule
 from tests.utils import ComparableHTTPXResponse
 
 if typing.TYPE_CHECKING:

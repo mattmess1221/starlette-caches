@@ -9,9 +9,9 @@ from aiocache import BaseCache, Cache
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 
-from asgi_caches.exceptions import RequestNotCachable, ResponseNotCachable
-from asgi_caches.rules import Rule
-from asgi_caches.utils.cache import (
+from starlette_caches.exceptions import RequestNotCachable, ResponseNotCachable
+from starlette_caches.rules import Rule
+from starlette_caches.utils.cache import (
     deserialize_response,
     get_cache_key,
     get_from_cache,

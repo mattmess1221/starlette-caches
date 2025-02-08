@@ -11,8 +11,8 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from asgi_caches.decorators import cached
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.decorators import cached
+from starlette_caches.middleware import CacheMiddleware
 
 if TYPE_CHECKING:
     from starlette.requests import Request

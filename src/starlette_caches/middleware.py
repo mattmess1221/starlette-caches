@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
-SCOPE_NAME = "__asgi_caches__"
+SCOPE_NAME = "__starlette_caches__"
 
 logger = get_logger(__name__)
 

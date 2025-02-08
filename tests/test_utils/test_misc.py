@@ -4,7 +4,7 @@ import typing
 
 import pytest
 
-from asgi_caches.utils.misc import is_asgi3
+from starlette_caches.utils.misc import is_asgi3
 
 if typing.TYPE_CHECKING:
     from starlette.requests import Request

@@ -8,7 +8,7 @@ from starlette.responses import PlainTextResponse, Response
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from asgi_caches.decorators import cache_control
+from starlette_caches.decorators import cache_control
 
 if TYPE_CHECKING:
     from starlette.requests import Request

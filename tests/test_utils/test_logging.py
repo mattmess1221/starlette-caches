@@ -6,7 +6,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from asgi_caches.middleware import CacheMiddleware
+from starlette_caches.middleware import CacheMiddleware
 from tests.utils import override_log_level
 
 
