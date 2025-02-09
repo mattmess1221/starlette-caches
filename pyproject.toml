@@ -15,6 +15,7 @@ authors = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
@@ -22,6 +23,8 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Typing :: Typed",
 ]
 dependencies = [
     "aiocache>=0.12.3",
@@ -36,6 +39,7 @@ msgpack = ["msgpack>=0.5.5"]
 [project.urls]
 Repository = "https://github.com/mattmess1221/starlette-caches"
 Documentation = "https://mattmess1221.github.io/starlette-caches"
+Changelog = "https://mattmess1221.github.io/starlette-caches/changelog"
 Issues = "https://github.com/mattmess1221/starlette-caches/issues"
 
 
