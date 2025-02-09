@@ -1,17 +1,50 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+# ruff: noqa: FA100
+import typing
+from collections.abc import Mapping
 
 from starlette.datastructures import URL, Headers
+from starlette.requests import Request
 
-from .middleware import BaseCacheMiddlewareHelper
+from .exceptions import MissingCaching
+from .middleware import SCOPE_NAME, CacheMiddleware
 from .utils.cache import delete_from_cache
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
+
+class _BaseCacheMiddlewareHelper:
+    """Base class for helpers that need access to the `CacheMiddleware` instance."""
+
+    def __init__(self, request: Request) -> None:
+        """Initialize the helper with the request and the cache middleware instance.
+
+        Args:
+            request: The request object.
+
+        Raises:
+            MissingCaching: If the cache middleware instance is not found in the scope
+                            or if the cache middleware instance is not an instance of
+                            `CacheMiddleware`.
+
+        """
+        self.request = request
+
+        if SCOPE_NAME not in request.scope:  # pragma: no cover
+            raise MissingCaching(
+                "No CacheMiddleware instance found in the ASGI scope. Did you forget "
+                "to wrap the ASGI application with `CacheMiddleware`?"
+            )
+
+        middleware = request.scope[SCOPE_NAME]
+        if not isinstance(middleware, CacheMiddleware):  # pragma: no cover
+            raise MissingCaching(
+                f"A scope variable named {SCOPE_NAME!r} was found, but it does not "
+                "contain a `CacheMiddleware` instance. It is likely that an "
+                "incompatible middleware was added to the middleware stack."
+            )
+
+        self.middleware = middleware
 
 
-class CacheHelper(BaseCacheMiddlewareHelper):
+class CacheHelper(_BaseCacheMiddlewareHelper):
     """Helper class for the `CacheMiddleware`.
 
     This helper class provides a way to maniuplate the cache middleware.
@@ -28,9 +61,9 @@ class CacheHelper(BaseCacheMiddlewareHelper):
 
     async def invalidate_cache_for(
         self,
-        url: str | URL,
+        url: typing.Union[str, URL],
         *,
-        headers: Headers | Mapping[str, str] | None = None,
+        headers: typing.Union[Mapping[str, str], None] = None,
     ) -> None:
         """Invalidate the cache for a given named route or full url.
 

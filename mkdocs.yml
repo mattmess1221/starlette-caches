@@ -36,12 +36,12 @@ plugins:
           paths:
             - src
           options:
-            # members
-            show_submodules: true
-            summary: true
+            # headings
+            show_root_heading: true
+            show_root_toc_entry: true
+            show_root_full_path: true
             # docstrings
             merge_init_into_class: true
-            show_if_no_docstring: true
             # signatures
             show_signature_annotations: true
             separate_signature: true

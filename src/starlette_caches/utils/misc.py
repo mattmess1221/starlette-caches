@@ -63,13 +63,3 @@ def is_asgi3(app: typing.Any) -> bool:
 def kvformat(**kwargs: typing.Any) -> str:
     return " ".join(f"{key}={value}" for key, value in kwargs.items())
 
-
-def eager_annotation(func: TFunc) -> TFunc:
-    """Add annotations to a function eagerly.
-
-    Required because FastAPI does not support forward ref annotations such as
-    when using `from __future__ import annotations`
-    """
-    kwargs = typing.get_type_hints(func)
-    func.__annotations__.update(kwargs)
-    return func

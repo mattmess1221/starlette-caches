@@ -7,7 +7,7 @@ class StarletteCachesException(Exception):
 
 
 class RequestNotCachable(StarletteCachesException):
-    """Raised when a request cannot be cached."""
+    """Raised internally when a request cannot be cached."""
 
     def __init__(self, request: Request) -> None:
         super().__init__()
@@ -15,7 +15,7 @@ class RequestNotCachable(StarletteCachesException):
 
 
 class ResponseNotCachable(StarletteCachesException):
-    """Raised when a response cannot be cached."""
+    """Raised internally when a response cannot be cached."""
 
     def __init__(self, response: Response) -> None:
         super().__init__()

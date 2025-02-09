@@ -41,6 +41,22 @@ ONE_YEAR = 60 * 60 * 24 * 365
 INVALIDATING_METHODS = frozenset(("POST", "PUT", "PATCH", "DELETE"))
 
 
+class CacheDirectives(typing.TypedDict, total=False):
+    max_age: int
+    s_maxage: int
+    no_cache: bool
+    no_store: bool
+    no_transform: bool
+    must_revalidate: bool
+    proxy_revalidate: bool
+    must_understand: bool
+    private: bool
+    public: bool
+    immutable: bool
+    stale_while_revalidate: int
+    stale_if_error: int
+
+
 async def store_in_cache(
     response: Response,
     *,
@@ -334,7 +350,9 @@ def get_cache_response_headers(response: Response, *, max_age: int) -> dict[str,
     return headers
 
 
-def patch_cache_control(headers: MutableHeaders, **kwargs: typing.Any) -> None:
+def patch_cache_control(
+    headers: MutableHeaders, **kwargs: typing.Unpack[CacheDirectives]
+) -> None:
     """Patch headers with an extended version of the initial Cache-Control header.
 
     Appends all keyword arguments to the Cache-Control header.
@@ -342,6 +360,7 @@ def patch_cache_control(headers: MutableHeaders, **kwargs: typing.Any) -> None:
     True values are added as flags, while false values are omitted.
     """
     cache_control: dict[str, typing.Any] = {}
+    value: typing.Any
     for field in parse_http_list(headers.get("Cache-Control", "")):
         try:
             key, value = field.split("=")
