@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# pre-checks
+
+patch="${1:-patch}"
+
+if ! grep -qxE "major|minor|patch" <<<"$patch"; then
+    echo "Usage: $0 [major|minor|patch]" >&2
+    exit 1
+fi
+
+if [[ -z $(command -v uvx) ]]; then
+    echo "uv/uvx is not installed!" >&2
+    exit 2
+fi
+
+# begin script
+
+# Determine and update the next version
+
+version="$(uvx hatch version)"
+if git show-ref --tags "$version" --quiet; then
+    version=$(uvx --from semver pysemver bump "$patch" "$version")
+    uvx hatch version "$version"
+fi
+
+# Update the changelog
+
+uvx git-cliff -o docs/changelog.md --tag "$version"
+
+# Check if it's ok to commit
+read -r -p "Check diff before comitting? [Yn]" answer
+if [[ ${answer,,} != n ]]; then
+    git diff
+    read -r -p "Is this ok to commit? [yN]" answer
+    if [[ ${answer,,} != y ]]; then
+        echo "Aborting"
+        exit 1
+    fi
+fi
+
+# Do the commit
+
+set -x
+git add -A
+git commit -F- <<EOF
+chore: release $version
+
+[skip]
+EOF
+git tag "$version"
+set +x
