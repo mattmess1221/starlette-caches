@@ -1,6 +1,5 @@
 requires = ["tox>=4.22"]
-env_list = ["3.13", "3.12", "3.11", "3.10", "3.9", "cover", "types"]
-allowlist_externals = ["coverage", "mypy"]
+env_list = ["3.13", "3.12", "3.11", "3.10", "3.9", "cover", "types", "lint"]
 
 [env_run_base]
 description = "Run test under {base_ptyhon}"
@@ -18,3 +17,11 @@ commands = [
 description = "run type check on code base"
 dependency_groups = ["types"]
 commands = [["mypy", "src", "tests"]]
+
+[env.lint]
+description = "Run linting checks on code base"
+dependency_groups = ["lint"]
+commands = [
+    ["ruff", "check", "src", "tests"],
+    ["ruff", "format", "--check", "--diff", "src", "tests"],
+]

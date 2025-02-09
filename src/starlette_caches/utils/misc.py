@@ -62,4 +62,3 @@ def is_asgi3(app: typing.Any) -> bool:
 
 def kvformat(**kwargs: typing.Any) -> str:
     return " ".join(f"{key}={value}" for key, value in kwargs.items())
-
