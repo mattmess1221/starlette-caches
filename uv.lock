@@ -1188,6 +1188,7 @@ docs = [
     { name = "mkdocstrings", extra = ["python"] },
 ]
 lint = [
+    { name = "mypy" },
     { name = "ruff" },
 ]
 test = [
@@ -1197,9 +1198,6 @@ test = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-rerunfailures" },
-]
-types = [
-    { name = "mypy" },
 ]
 
 [package.metadata]
@@ -1217,7 +1215,10 @@ docs = [
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.27.0" },
 ]
-lint = [{ name = "ruff", specifier = ">=0.9.4" }]
+lint = [
+    { name = "mypy", specifier = ">=1.14.1" },
+    { name = "ruff", specifier = ">=0.9.4" },
+]
 test = [
     { name = "coverage" },
     { name = "fastapi", specifier = ">=0.115.8" },
@@ -1226,7 +1227,6 @@ test = [
     { name = "pytest-asyncio" },
     { name = "pytest-rerunfailures" },
 ]
-types = [{ name = "mypy", specifier = ">=1.14.1" }]
 
 [[package]]
 name = "tomli"

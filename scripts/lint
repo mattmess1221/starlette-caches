@@ -1,6 +1,7 @@
-#!/usr/bin/sh
-
+#!/usr/bin/env -S uv run --group lint bash
+# shellcheck shell=bash
+set -euo pipefail
 set -x
 
-uv run --group lint ruff check --fix src/starlette_caches tests
-uv run --group lint ruff format src/starlette_caches tests
+ruff check --fix src/starlette_caches tests
+ruff format src/starlette_caches tests

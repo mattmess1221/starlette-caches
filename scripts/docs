@@ -1,5 +1,6 @@
-#!/usr/bin/sh -e
-
+#!/usr/bin/env -S uv run --group docs bash
+# shellcheck shell=bash
+set -euo pipefail
 set -x
 
-uv run --group docs mkdocs build
+mkdocs build
