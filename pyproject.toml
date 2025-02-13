@@ -51,6 +51,7 @@ test = [
     "pytest-rerunfailures",
     "httpx",
     "fastapi>=0.115.8",
+    "click>=8.1.8",
 ]
 
 docs = [
