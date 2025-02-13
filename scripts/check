@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --group lint bash
+#!/usr/bin/env -S uv run --group lint --group types bash
 # shellcheck shell=bash
 set -euo pipefail
 set -x
