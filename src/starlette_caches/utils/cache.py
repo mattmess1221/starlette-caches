@@ -325,7 +325,7 @@ def generate_cache_key(
 
     url_hash = hashlib.md5(str(url).encode("ascii"), usedforsecurity=False).hexdigest()
 
-    return cache.build_key(f"cache_page.{method}.{url_hash}.{vary_hash}")
+    return f"cache_page.{method}.{url_hash}.{vary_hash}"
 
 
 def generate_varying_headers_cache_key(url: URL, cache: BaseCache) -> str:
@@ -334,7 +334,7 @@ def generate_varying_headers_cache_key(url: URL, cache: BaseCache) -> str:
     Suitable for associating varying headers to a requested URL.
     """
     url_hash = hashlib.md5(str(url.path).encode("ascii"), usedforsecurity=False)
-    return cache.build_key(f"varying_headers.{url_hash.hexdigest()}")
+    return f"varying_headers.{url_hash.hexdigest()}"
 
 
 def get_cache_response_headers(response: Response, *, max_age: int) -> dict[str, str]:
