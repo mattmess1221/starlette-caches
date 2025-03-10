@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2025-03-10
+
+### 🐛 Bug Fixes
+- Fix type error with memcached caused by build_key returning wrong type
+
+### ⚙️ Miscellaneous Tasks
+- add pre-commit configuration for ruff and ruff-format hooks
+
 ## [0.4.0] - 2025-02-09
 
 ### 🚀 Features
