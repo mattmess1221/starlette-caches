@@ -1,4 +1,3 @@
-# noqa: A005
 import logging
 import os
 import sys
@@ -56,7 +55,7 @@ class LoggerFactory:
 
         logger.trace = trace  # type: ignore
 
-        return typing.cast(Logger, logger)
+        return typing.cast("Logger", logger)
 
 
 _logger_factory = LoggerFactory()

@@ -1,4 +1,4 @@
 line-length = 79
 
-[isort]
+[lint.isort]
 known-first-party = []
